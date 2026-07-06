@@ -19,19 +19,25 @@ export async function GET(request) {
     
     if (!error && sessionData?.session?.user) {
       const user = sessionData.session.user;
-      let role = user.user_metadata?.role || 'student';
-      if (role === 'employee') role = 'student'; // Handle legacy users
+      
+      // Check if user already has a role (meaning they are an existing user)
+      const existingRole = user.user_metadata?.role;
+      let finalRole = existingRole;
 
-      if (roleOverride && roleOverride !== role) {
-        role = roleOverride === 'employee' ? 'student' : roleOverride;
+      if (finalRole === 'employee') finalRole = 'student'; // Handle legacy users
+
+      // ONLY apply the role override if this is a brand new user
+      if (!existingRole) {
+        finalRole = (roleOverride === 'employee' ? 'student' : roleOverride) || 'student';
         // Update auth metadata
-        await supabase.auth.updateUser({ data: { role } });
+        await supabase.auth.updateUser({ data: { role: finalRole } });
         // Update public profiles table
-        await supabase.from('profiles').update({ role }).eq('id', user.id);
+        await supabase.from('profiles').update({ role: finalRole }).eq('id', user.id);
       }
       
-      // If no specific 'next' param was provided, route them based on their role
-      const actualNext = requestUrl.searchParams.get('next') ?? `/dashboard/${role}`;
+      // If an existing Student accidentally clicks "Employer Sign In", 
+      // we ignore the cookie and gracefully route them to their correct Student dashboard!
+      const actualNext = requestUrl.searchParams.get('next') ?? `/dashboard/${finalRole}`;
       
       const response = NextResponse.redirect(new URL(actualNext, request.url));
       response.cookies.set('oauth_role', '', { maxAge: 0 }); // Clear the cookie
