@@ -6,7 +6,7 @@ import {
   MapPin, Mail, Phone, Globe, Linkedin, Github, Check, AlertCircle, ArrowLeft,
   FileUp, X, UploadCloud, Layers, Cpu
 } from 'lucide-react';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '../../../../lib/supabase/client';
 
 const ResumeBuilderPage = () => {
   const [user, setUser] = useState(null);
@@ -77,10 +77,7 @@ const ResumeBuilderPage = () => {
   // Load user profile & sync initially
   useEffect(() => {
     const fetchUser = async () => {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
+      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         window.location.href = '/login';

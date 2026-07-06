@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '../../../lib/supabase/client';
 import { 
   User, 
   Settings as SettingsIcon, 
@@ -32,10 +32,7 @@ export default function SettingsClient({ initialUser, initialCompany }) {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  const supabase = createClient();
 
   // Job Seeker State
   const [studentForm, setStudentForm] = useState({

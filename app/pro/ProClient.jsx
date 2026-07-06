@@ -6,7 +6,7 @@ import {
   Zap, Check, HelpCircle, ArrowRight, CreditCard, Lock, Sparkles,
   ShieldCheck, X, Smartphone, Building2, Wallet
 } from 'lucide-react';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '../../lib/supabase/client';
 import { useRouter } from 'next/navigation';
 // Note: Sound utility may not be ported yet, so I'll omit or mock it
 const playDesktopSuccess = () => {
@@ -58,10 +58,7 @@ export default function ProClient({ initialUser }) {
     return () => clearInterval(pollRef.current);
   }, [sessionId]);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  const supabase = createClient();
 
   const startPolling = () => {
     if (polling) return;

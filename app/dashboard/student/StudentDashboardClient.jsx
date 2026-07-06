@@ -7,7 +7,7 @@ import {
   ShieldCheck, Crown, AlertTriangle, FileText, UploadCloud, Cpu, Layers, FileUp, Sparkles,
   Camera, Phone, GraduationCap, User, Bookmark
 } from 'lucide-react';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '../../../lib/supabase/client';
 
 import { toggleSavedJob } from '../../../lib/actions/student';
 
@@ -43,10 +43,7 @@ export default function StudentDashboardClient({ initialUser, liveApplications =
   const [importStep, setImportStep] = useState('idle');
   const [parsedData, setParsedData] = useState(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  const supabase = createClient();
 
   const calculateProfileStrength = () => {
     let score = 0;

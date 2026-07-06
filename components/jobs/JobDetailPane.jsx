@@ -8,7 +8,7 @@ import DeadlineTimer from './DeadlineTimer';
 import RecruitmentTimeline from './RecruitmentTimeline';
 import HRContactButtons from './HRContactButtons';
 import { submitApplication, toggleSavedJob, incrementJobViews } from '../../lib/actions/student';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '../../lib/supabase/client';
 import { useAuth } from '../../context/AuthContext';
 
 const JobDetailPane = ({ job }) => {
@@ -24,10 +24,7 @@ const JobDetailPane = ({ job }) => {
   const { profile } = useAuth();
   const isEmployer = profile?.role === 'employer';
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  const supabase = createClient();
 
   useEffect(() => {
     if (!job) return;
