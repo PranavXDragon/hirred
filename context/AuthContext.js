@@ -140,14 +140,14 @@ export function AuthProvider({ children }) {
   }
 
   const signInWithOAuth = async (provider, role = 'student') => {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
-    const callbackUrl = new URL(`${siteUrl}/auth/callback`);
-    if (role) callbackUrl.searchParams.set('role', role);
+    // Rely strictly on window location to prevent any env var trailing slash issues
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://hirrd.tech';
+    const callbackUrl = `${origin}/auth/callback`;
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: callbackUrl.toString()
+        redirectTo: callbackUrl
       }
     })
     if (error) {
