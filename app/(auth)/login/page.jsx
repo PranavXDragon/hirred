@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const SigninPage = () => {
   const { signInWithOAuth } = useAuth();
-  const [role, setRole] = useState('employee'); // 'employee' | 'employer' | 'admin'
+  const [role, setRole] = useState('student'); // 'student' | 'employer' | 'admin'
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -84,9 +84,9 @@ const SigninPage = () => {
           <div className="grid grid-cols-2 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
             <button 
               type="button" 
-              onClick={() => { setRole('employee'); setError(''); }}
+              onClick={() => { setRole('student'); setError(''); }}
               className={`py-2 text-[10px] font-black uppercase tracking-wider transition-all duration-200 ${
-                role === 'employee' ? 'bg-black text-white' : 'hover:bg-slate-200 text-slate-500'
+                role === 'student' ? 'bg-black text-white' : 'hover:bg-slate-200 text-slate-500'
               }`}
             >
               Job Seeker

@@ -60,7 +60,7 @@ const ProfilePage = () => {
     const parsedUser = JSON.parse(currentUser);
 
     // Role segregation checks
-    if (parsedUser.role !== 'employee') {
+    if (parsedUser.role !== 'student') {
       if (parsedUser.role === 'employer') {
         window.location.href = '/dashboard/employer';
       } else if (parsedUser.role === 'admin') {

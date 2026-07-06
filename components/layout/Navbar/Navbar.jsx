@@ -18,7 +18,7 @@ const Navbar = () => {
   const currentUser = user ? {
     name: profile?.full_name || user.user_metadata?.full_name || '',
     email: profile?.email || user.email,
-    role: profile?.role || 'employee',
+    role: profile?.role || 'student',
     profilePicture: profile?.profile_photo || null,
     isPro: false
   } : null;
@@ -140,7 +140,7 @@ const Navbar = () => {
                     <SettingsIcon size={20} />
                   </Link>
                   <Link 
-                    href={currentUser.role === 'student' || currentUser.role === 'employee' ? '/dashboard/student' : currentUser.role === 'employer' ? '/dashboard/employer' : '/dashboard/admin'}
+                    href={currentUser.role === 'student' ? '/dashboard/student' : currentUser.role === 'employer' ? '/dashboard/employer' : '/dashboard/admin'}
                     className="flex items-center shrink-0 relative"
                   >
                     {currentUser.profilePicture ? (
@@ -253,10 +253,10 @@ const Navbar = () => {
                 {currentUser ? (
                   <>
                     <button 
-                      onClick={() => router.push(currentUser.role === 'employee' || currentUser.role === 'student' ? '/dashboard/student' : currentUser.role === 'employer' ? '/dashboard/employer' : '/dashboard/admin')}
+                      onClick={() => router.push(currentUser.role === 'student' ? '/dashboard/student' : currentUser.role === 'employer' ? '/dashboard/employer' : '/dashboard/admin')}
                       className="w-full border-2 border-black py-4 font-bold uppercase tracking-widest shadow-md hover:bg-sky-500 hover:text-black transition-colors cursor-pointer"
                     >
-                      {currentUser.role === 'employee' || currentUser.role === 'student' ? 'Profile' : 'Dashboard'}
+                      {currentUser.role === 'student' ? 'Profile' : 'Dashboard'}
                     </button>
                      <button 
                       onClick={() => router.push('/dashboard/settings')}
