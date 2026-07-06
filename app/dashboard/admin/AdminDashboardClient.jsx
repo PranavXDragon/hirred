@@ -161,7 +161,7 @@ const AdminDashboardClient = ({ user, initialStats, initialUsers }) => {
                             {u.role || 'Unassigned'}
                           </span>
                         </td>
-                        <td className="p-4 text-center text-[10px] font-black text-slate-500 uppercase">
+                        <td className="p-4 text-center text-[10px] font-black text-slate-500 uppercase" suppressHydrationWarning>
                           {new Date(u.created_at).toLocaleDateString()}
                         </td>
                         <td className="p-4 text-center">

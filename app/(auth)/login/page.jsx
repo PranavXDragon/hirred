@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Eye, EyeOff, ArrowRight, Github, Linkedin } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const SigninPage = () => {
+  const { signInWithOAuth } = useAuth();
   const [role, setRole] = useState('employee'); // 'employee' | 'employer' | 'admin'
   const [formData, setFormData] = useState({
     email: '',
@@ -12,6 +14,18 @@ const SigninPage = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [oauthLoading, setOauthLoading] = useState(false);
+
+  const handleOAuthLogin = async (provider) => {
+    try {
+      setOauthLoading(true);
+      setError('');
+      await signInWithOAuth(provider, role);
+    } catch (err) {
+      setError(err.message || 'OAuth login failed');
+      setOauthLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,6 +42,9 @@ const SigninPage = () => {
         setError(result.error);
       }
     } catch (err) {
+      if (err?.message?.includes('NEXT_REDIRECT')) {
+        throw err;
+      }
       setError('An error occurred during sign in.');
       console.error(err);
     }
@@ -64,7 +81,7 @@ const SigninPage = () => {
           </h1>
 
           {/* Role Swapper Tabs */}
-          <div className="grid grid-cols-3 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
+          <div className="grid grid-cols-2 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
             <button 
               type="button" 
               onClick={() => { setRole('employee'); setError(''); }}
@@ -82,15 +99,6 @@ const SigninPage = () => {
               }`}
             >
               Employer
-            </button>
-            <button 
-              type="button" 
-              onClick={() => { setRole('admin'); setError(''); }}
-              className={`py-2 text-[10px] font-black uppercase tracking-wider transition-all duration-200 ${
-                role === 'admin' ? 'bg-black text-white' : 'hover:bg-slate-200 text-slate-500'
-              }`}
-            >
-              Admin
             </button>
           </div>
 
@@ -177,7 +185,9 @@ const SigninPage = () => {
             {/* Google */}
             <button 
               type="button"
-              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors"
+              onClick={() => handleOAuthLogin('google')}
+              disabled={oauthLoading}
+              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors disabled:opacity-50"
               title="Google"
             >
               <svg className="w-5 h-5 text-black" viewBox="0 0 24 24" fill="currentColor">
@@ -188,7 +198,9 @@ const SigninPage = () => {
             {/* LinkedIn */}
             <button 
               type="button"
-              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors"
+              onClick={() => handleOAuthLogin('linkedin_oidc')}
+              disabled={oauthLoading}
+              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors disabled:opacity-50"
               title="LinkedIn"
             >
               <Linkedin className="w-5 h-5 text-black" />
@@ -197,7 +209,9 @@ const SigninPage = () => {
             {/* GitHub */}
             <button 
               type="button"
-              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors"
+              onClick={() => handleOAuthLogin('github')}
+              disabled={oauthLoading}
+              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors disabled:opacity-50"
               title="GitHub"
             >
               <Github className="w-5 h-5 text-black" />

@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react'
 import Hero from './Hero/Hero'
 import About from '@/components/about/About'
@@ -7,7 +8,7 @@ import Insights from '@/components/insights/Insights'
 import Careers from '@/components/careers/Careers'
 import Contact from '@/components/contact/Contact'
 
-function LandingPage() {
+function LandingPage({ liveJobs = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
 
@@ -26,6 +27,7 @@ function LandingPage() {
     <>
       <Hero />
       <Careers 
+        liveJobs={liveJobs}
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
         searchLocation={searchLocation} 

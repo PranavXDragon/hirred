@@ -17,14 +17,17 @@ import {
   Save,
   Zap,
   FileText,
-  ArrowRight
+  ArrowRight,
+  Building,
+  Briefcase
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../../context/ThemeContext';
 
-export default function SettingsClient({ initialUser }) {
+export default function SettingsClient({ initialUser, initialCompany }) {
   const router = useRouter();
   const [user, setUser] = useState(initialUser);
+  const [company, setCompany] = useState(initialCompany);
   const [activeTab, setActiveTab] = useState('account');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -34,39 +37,44 @@ export default function SettingsClient({ initialUser }) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
 
-  const [accountForm, setAccountForm] = useState({
+  // Job Seeker State
+  const [studentForm, setStudentForm] = useState({
     name: initialUser?.full_name || '',
-    email: initialUser?.email || '', // We don't change email here easily, but we'll show it
-    role: initialUser?.role || 'employee',
+    email: initialUser?.email || '',
+    bio: initialUser?.bio || '',
+    phone: initialUser?.phone || '',
+    college: initialUser?.college || '',
+    location: initialUser?.location || '',
+    experience: initialUser?.experience || '',
+    linkedin_url: initialUser?.linkedin_url || '',
     visibility: 'public',
-    resumeName: 'Resume_Technical_Draft.pdf'
+    resumeName: initialUser?.resume_url || 'Resume_Technical_Draft.pdf'
+  });
+
+  // Employer State
+  const [employerForm, setEmployerForm] = useState({
+    name: initialUser?.full_name || '',
+    email: initialUser?.email || '',
+    companyName: initialCompany?.name || '',
+    industry: initialCompany?.industry || '',
+    location: initialCompany?.location || '',
+    size: initialCompany?.size || '',
+    website: initialCompany?.website || '',
   });
 
   const { theme, setTheme, accent: accentColor, setAccent: setAccentColor, density, setDensity } = useTheme();
 
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications] = useState(initialUser?.preferences?.notifications || {
     emailJobs: true,
     emailApplications: true,
     emailMessages: false,
     frequency: 'instant'
   });
 
-  const [security, setSecurity] = useState({
+  const [security, setSecurity] = useState(initialUser?.preferences?.security || {
     twoFactor: false,
     sessionTimeout: '30'
   });
-
-  useEffect(() => {
-    const savedNotify = localStorage.getItem('appNotifications');
-    if (savedNotify) {
-      try { setNotifications(JSON.parse(savedNotify)); } catch {}
-    }
-
-    const savedSecurity = localStorage.getItem('appSecurity');
-    if (savedSecurity) {
-      try { setSecurity(JSON.parse(savedSecurity)); } catch {}
-    }
-  }, []);
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
@@ -77,47 +85,80 @@ export default function SettingsClient({ initialUser }) {
   const handleSaveAccount = async (e) => {
     e.preventDefault();
     
-    // Update the profile in Supabase
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        full_name: accountForm.name,
-      })
-      .eq('id', user.id);
+    let updates = {};
+    if (user.role === 'employer') {
+      updates = { full_name: employerForm.name };
+      
+      const companyPayload = {
+        name: employerForm.companyName,
+        industry: employerForm.industry,
+        location: employerForm.location,
+        size: employerForm.size,
+        website: employerForm.website,
+      };
+
+      if (company?.id) {
+        await supabase.from('companies').update(companyPayload).eq('id', company.id);
+      } else {
+        await supabase.from('companies').insert({ ...companyPayload, employer_id: user.id });
+      }
+    } else {
+      updates = { 
+        full_name: studentForm.name,
+        bio: studentForm.bio,
+        phone: studentForm.phone,
+        college: studentForm.college,
+        location: studentForm.location,
+        experience: studentForm.experience,
+        linkedin_url: studentForm.linkedin_url,
+      };
+    }
+
+    const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
 
     if (error) {
       triggerToast('Error: Failed to synchronize profile.');
-      console.error(error);
     } else {
-      triggerToast('Profile account registry synchronized successfully.');
-      setUser({ ...user, full_name: accountForm.name });
+      triggerToast('Profile registry synchronized successfully.');
+      setUser({ ...user, full_name: updates.full_name });
     }
   };
 
-  const handleSavePreferences = async () => {
+  // Auto-save Theme/Accent to DB immediately when clicked
+  const updatePreference = async (key, value) => {
+    const newPreferences = {
+      ...user?.preferences,
+      theme: key === 'theme' ? value : theme,
+      accentColor: key === 'accentColor' ? value : accentColor,
+      density: key === 'density' ? value : density,
+      notifications,
+      security
+    };
+
+    if (key === 'theme') setTheme(value);
+    if (key === 'accentColor') setAccentColor(value);
+    if (key === 'density') setDensity(value);
+
     if (user?.id) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          preferences: { theme, accentColor, density } 
-        })
-        .eq('id', user.id);
-      
-      if (error) {
-        console.error('Failed to sync preferences:', error);
-      }
+      await supabase.from('profiles').update({ preferences: newPreferences }).eq('id', user.id);
+      setUser({ ...user, preferences: newPreferences });
     }
-
-    triggerToast('System preference variables updated.');
+    triggerToast('Personalization preferences synced.');
   };
 
-  const handleSaveNotifications = () => {
-    localStorage.setItem('appNotifications', JSON.stringify(notifications));
+  const handleSaveNotifications = async () => {
+    const newPreferences = { ...user?.preferences, theme, accentColor, density, notifications, security };
+    if (user?.id) {
+      await supabase.from('profiles').update({ preferences: newPreferences }).eq('id', user.id);
+    }
     triggerToast('Alert signals preferences committed.');
   };
 
-  const handleSaveSecurity = () => {
-    localStorage.setItem('appSecurity', JSON.stringify(security));
+  const handleSaveSecurity = async () => {
+    const newPreferences = { ...user?.preferences, theme, accentColor, density, notifications, security };
+    if (user?.id) {
+      await supabase.from('profiles').update({ preferences: newPreferences }).eq('id', user.id);
+    }
     triggerToast('Cryptographic security settings saved.');
   };
 
@@ -125,9 +166,6 @@ export default function SettingsClient({ initialUser }) {
     if (!window.confirm('WARNING: Are you sure you want to permanently purge your account? This action is irreversible.')) {
       return;
     }
-
-    // Usually you'd call a Supabase Edge Function to delete the auth user,
-    // but for now we'll just log them out and trigger a toast.
     await supabase.auth.signOut();
     router.push('/');
   };
@@ -177,13 +215,13 @@ export default function SettingsClient({ initialUser }) {
           
           <aside className="lg:col-span-3 flex flex-col gap-2">
             {[
-              { id: 'account', name: 'Profile & Account', icon: User },
-              { id: 'preferences', name: 'Preferences & Themes', icon: SettingsIcon },
-              { id: 'notifications', name: 'Alerts & Signals', icon: Bell },
-              { id: 'security', name: 'Security & Privacy', icon: Shield },
-              { id: 'cv-builder', name: 'AI Resume Builder 📝', icon: FileText },
-              { id: 'pro', name: 'Get hirrd Pro ⚡', icon: Zap }
-            ].map(tab => {
+              { id: 'account', name: 'Profile & Account', icon: User, show: true },
+              { id: 'preferences', name: 'Preferences & Themes', icon: SettingsIcon, show: true },
+              { id: 'notifications', name: 'Alerts & Signals', icon: Bell, show: true },
+              { id: 'security', name: 'Security & Privacy', icon: Shield, show: true },
+              { id: 'cv-builder', name: 'AI Resume Builder 📝', icon: FileText, show: user.role !== 'employer' },
+              { id: 'pro', name: 'Get hirrd Pro ⚡', icon: Zap, show: true }
+            ].filter(t => t.show).map(tab => {
               const IconComp = tab.icon;
               return (
                 <button
@@ -215,6 +253,7 @@ export default function SettingsClient({ initialUser }) {
                 </h3>
 
                 <form onSubmit={handleSaveAccount} className="space-y-6">
+                  {/* Common Contact Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Full Name</label>
@@ -222,8 +261,8 @@ export default function SettingsClient({ initialUser }) {
                         type="text" 
                         required
                         className="w-full bg-slate-50 border-[3px] border-black p-3 font-bold focus:outline-none focus:bg-white transition-colors"
-                        value={accountForm.name}
-                        onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
+                        value={user.role === 'employer' ? employerForm.name : studentForm.name}
+                        onChange={(e) => user.role === 'employer' ? setEmployerForm({ ...employerForm, name: e.target.value }) : setStudentForm({ ...studentForm, name: e.target.value })}
                       />
                     </div>
 
@@ -233,57 +272,181 @@ export default function SettingsClient({ initialUser }) {
                         type="email" 
                         disabled
                         className="w-full bg-slate-100 border-[3px] border-slate-300 text-slate-500 p-3 font-bold focus:outline-none"
-                        value={accountForm.email}
+                        value={user.role === 'employer' ? employerForm.email : studentForm.email}
                       />
                       <p className="text-[9px] font-bold text-slate-400 uppercase">Contact support to change email</p>
                     </div>
                   </div>
 
+                  {/* Job Seeker Only Fields */}
                   {user.role !== 'employer' && (
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Registry Visibility</label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {[
-                          { id: 'public', label: 'Public (All Recruiters)' },
-                          { id: 'recruiter', label: 'Protected (Recruiter Verification Only)' },
-                          { id: 'private', label: 'Hidden (Private Node)' }
-                        ].map(opt => (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            onClick={() => setAccountForm({ ...accountForm, visibility: opt.id })}
-                            className={`p-4 border-2 font-black uppercase text-[9px] tracking-wider transition-all
-                              ${accountForm.visibility === opt.id 
-                                ? 'bg-black border-black text-white shadow-[4px_4px_0px_0px_rgba(14,165,233,1)]' 
-                                : 'bg-slate-50 border-slate-100 hover:border-black text-slate-500 hover:text-black'}
-                            `}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Professional Bio</label>
+                          <textarea 
+                            className="w-full bg-slate-50 border-[3px] border-black p-3 font-bold focus:outline-none focus:bg-white transition-colors h-24"
+                            value={studentForm.bio}
+                            onChange={(e) => setStudentForm({ ...studentForm, bio: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Experience (Years)</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-slate-50 border-[3px] border-black p-3 font-bold focus:outline-none focus:bg-white transition-colors"
+                            value={studentForm.experience}
+                            onChange={(e) => setStudentForm({ ...studentForm, experience: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">College / University</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-slate-50 border-[3px] border-black p-3 font-bold focus:outline-none focus:bg-white transition-colors"
+                            value={studentForm.college}
+                            onChange={(e) => setStudentForm({ ...studentForm, college: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Location</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-slate-50 border-[3px] border-black p-3 font-bold focus:outline-none focus:bg-white transition-colors"
+                            value={studentForm.location}
+                            onChange={(e) => setStudentForm({ ...studentForm, location: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">LinkedIn URL</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-slate-50 border-[3px] border-black p-3 font-bold focus:outline-none focus:bg-white transition-colors"
+                            value={studentForm.linkedin_url}
+                            onChange={(e) => setStudentForm({ ...studentForm, linkedin_url: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Phone</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-slate-50 border-[3px] border-black p-3 font-bold focus:outline-none focus:bg-white transition-colors"
+                            value={studentForm.phone}
+                            onChange={(e) => setStudentForm({ ...studentForm, phone: e.target.value })}
+                          />
+                        </div>
                       </div>
-                    </div>
+
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Registry Visibility</label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {[
+                            { id: 'public', label: 'Public (All Recruiters)' },
+                            { id: 'recruiter', label: 'Protected (Recruiter Verification Only)' },
+                            { id: 'private', label: 'Hidden (Private Node)' }
+                          ].map(opt => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => setStudentForm({ ...studentForm, visibility: opt.id })}
+                              className={`p-4 border-2 font-black uppercase text-[9px] tracking-wider transition-all
+                                ${studentForm.visibility === opt.id 
+                                  ? 'bg-black border-black text-white shadow-[4px_4px_0px_0px_rgba(14,165,233,1)]' 
+                                  : 'bg-slate-50 border-slate-100 hover:border-black text-slate-500 hover:text-black'}
+                              `}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="p-6 bg-slate-50 border-2 border-dashed border-slate-300 rounded-none space-y-4">
+                        <div className="flex justify-between items-center flex-wrap gap-4">
+                          <div>
+                            <h4 className="text-xs font-black uppercase mb-1">Attached CV Documentation</h4>
+                            <p className="text-[10px] font-bold text-slate-400 tracking-tight">{studentForm.resumeName}</p>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const customName = prompt('Enter mock file name to attach:', 'Resume_Draft_Final_2026.pdf');
+                              if (customName) setStudentForm({ ...studentForm, resumeName: customName });
+                            }}
+                            className="bg-black text-white hover:bg-sky-500 hover:text-black px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-2 cursor-pointer"
+                          >
+                            <Upload size={12} /> Replace
+                          </button>
+                        </div>
+                      </div>
+                    </>
                   )}
 
-                  {user.role !== 'employer' && (
-                    <div className="p-6 bg-slate-50 border-2 border-dashed border-slate-300 rounded-none space-y-4">
-                      <div className="flex justify-between items-center flex-wrap gap-4">
-                        <div>
-                          <h4 className="text-xs font-black uppercase mb-1">Attached CV Documentation</h4>
-                          <p className="text-[10px] font-bold text-slate-400 tracking-tight">{accountForm.resumeName}</p>
+                  {/* Employer Only Fields */}
+                  {user.role === 'employer' && (
+                    <>
+                      <div className="bg-slate-100 p-6 border-[3px] border-black space-y-6">
+                        <h4 className="text-sm font-black uppercase flex items-center gap-2">
+                          <Building className="text-sky-500" /> Corporate Entity Details
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Company Name</label>
+                            <input 
+                              type="text" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={employerForm.companyName}
+                              onChange={(e) => setEmployerForm({ ...employerForm, companyName: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Industry</label>
+                            <input 
+                              type="text" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={employerForm.industry}
+                              onChange={(e) => setEmployerForm({ ...employerForm, industry: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Headquarters Location</label>
+                            <input 
+                              type="text" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={employerForm.location}
+                              onChange={(e) => setEmployerForm({ ...employerForm, location: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Company Size</label>
+                            <select 
+                              className="w-full bg-white border-[3px] border-black p-3.5 font-bold focus:outline-none transition-colors"
+                              value={employerForm.size}
+                              onChange={(e) => setEmployerForm({ ...employerForm, size: e.target.value })}
+                            >
+                              <option value="">Select Size...</option>
+                              <option value="1-10">1-10 Employees</option>
+                              <option value="11-50">11-50 Employees</option>
+                              <option value="51-200">51-200 Employees</option>
+                              <option value="201-500">201-500 Employees</option>
+                              <option value="500+">500+ Employees</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Corporate Website</label>
+                            <input 
+                              type="url" 
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={employerForm.website}
+                              onChange={(e) => setEmployerForm({ ...employerForm, website: e.target.value })}
+                            />
+                          </div>
                         </div>
-                        <button 
-                          type="button"
-                          onClick={() => {
-                            const customName = prompt('Enter mock file name to attach:', 'Resume_Draft_Final_2026.pdf');
-                            if (customName) setAccountForm({ ...accountForm, resumeName: customName });
-                          }}
-                          className="bg-black text-white hover:bg-sky-500 hover:text-black px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                          <Upload size={12} /> Replace
-                        </button>
                       </div>
-                    </div>
+                    </>
                   )}
 
                   <div className="pt-6 border-t-2 border-slate-100 flex justify-between items-center gap-4 flex-wrap">
@@ -307,14 +470,15 @@ export default function SettingsClient({ initialUser }) {
                 <h3 className="text-2xl font-black uppercase tracking-tight border-b-2 border-black pb-4">
                   Layout & Design Settings
                 </h3>
+                <p className="text-xs font-bold text-slate-500 mb-6 uppercase">These settings are instantly saved to your profile and follow you across devices.</p>
 
                 <div className="space-y-8">
                   <div className="space-y-4">
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Theme Scheme</label>
                     <div className="grid grid-cols-2 gap-4">
                       <button
-                        onClick={() => setTheme('light')}
-                        className={`p-6 border-[3px] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-wider transition-all
+                        onClick={() => updatePreference('theme', 'light')}
+                        className={`p-6 border-[3px] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-wider transition-all cursor-pointer
                           ${theme === 'light' 
                             ? 'bg-white border-black text-black shadow-[6px_6px_0px_0px_rgba(14,165,233,1)]' 
                             : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-black hover:text-black'}
@@ -324,8 +488,8 @@ export default function SettingsClient({ initialUser }) {
                       </button>
 
                       <button
-                        onClick={() => setTheme('dark')}
-                        className={`p-6 border-[3px] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-wider transition-all
+                        onClick={() => updatePreference('theme', 'dark')}
+                        className={`p-6 border-[3px] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-wider transition-all cursor-pointer
                           ${theme === 'dark' 
                             ? 'bg-black border-black text-white shadow-[6px_6px_0px_0px_rgba(14,165,233,1)]' 
                             : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-black hover:text-black'}
@@ -347,8 +511,8 @@ export default function SettingsClient({ initialUser }) {
                       ].map(opt => (
                         <button
                           key={opt.id}
-                          onClick={() => setAccentColor(opt.id)}
-                          className={`p-4 border-2 font-black uppercase text-[10px] tracking-wider transition-all flex items-center gap-2
+                          onClick={() => updatePreference('accentColor', opt.id)}
+                          className={`p-4 border-2 font-black uppercase text-[10px] tracking-wider transition-all flex items-center gap-2 cursor-pointer
                             ${accentColor === opt.id 
                               ? 'bg-black border-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
                               : 'bg-slate-50 border-slate-100 hover:border-black text-slate-500 hover:text-black'}
@@ -367,7 +531,7 @@ export default function SettingsClient({ initialUser }) {
                       {['cozy', 'comfortable', 'spacious'].map(opt => (
                         <button
                           key={opt}
-                          onClick={() => setDensity(opt)}
+                          onClick={() => updatePreference('density', opt)}
                           className={`flex-1 p-3 border-2 font-black uppercase text-[10px] tracking-widest transition-all cursor-pointer
                             ${density === opt 
                               ? 'bg-black border-black text-white' 
@@ -378,15 +542,6 @@ export default function SettingsClient({ initialUser }) {
                         </button>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="pt-6 border-t-2 border-slate-100">
-                    <button 
-                      onClick={handleSavePreferences}
-                      className="bg-black text-white hover:bg-sky-500 hover:text-black px-8 py-4 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none cursor-pointer"
-                    >
-                      Apply Preferences
-                    </button>
                   </div>
                 </div>
               </motion.div>

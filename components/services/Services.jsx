@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   Briefcase, 
@@ -128,9 +129,9 @@ const Services = () => {
                 {service.desc}
               </p>
 
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-black/40 group-hover:text-sky-500 transition-colors">
+              <Link href="/services" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-black/40 group-hover:text-sky-500 transition-colors">
                 Explore Protocol <ArrowUpRight size={14} />
-              </div>
+              </Link>
             </motion.div>
           ))}
         </motion.div>
@@ -150,9 +151,9 @@ const Services = () => {
             </div>
           </div>
           
-          <button className="px-8 py-4 bg-black text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-sky-500 transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)]">
+          <Link href="/services" className="px-8 py-4 bg-black text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-sky-500 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)] inline-block">
             View All Services
-          </button>
+          </Link>
         </motion.div>
 
       </div>

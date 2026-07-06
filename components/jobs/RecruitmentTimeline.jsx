@@ -1,15 +1,30 @@
 "use client";
 
 import React from 'react';
-import { CheckCircle2, Circle, ArrowDown } from 'lucide-react';
+import { CheckCircle2, Circle, XCircle } from 'lucide-react';
 
-const RecruitmentTimeline = () => {
-  const stages = [
-    { title: "Application Review", status: "completed", desc: "Initial automated screening" },
-    { title: "Technical Assessment", status: "active", desc: "Take-home coding challenge" },
+const RecruitmentTimeline = ({ currentStatus }) => {
+  let stages = [
+    { title: "Application Review", status: "pending", desc: "Initial automated screening" },
+    { title: "Technical Assessment", status: "pending", desc: "Take-home coding challenge" },
     { title: "Architecture Interview", status: "pending", desc: "System design with Core Team" },
     { title: "Final Protocol", status: "pending", desc: "Offer & Onboarding" }
   ];
+
+  if (currentStatus) {
+    const status = currentStatus.toLowerCase();
+    if (status === 'pending') {
+      stages[0].status = 'active';
+    } else if (status === 'shortlisted') {
+      stages[0].status = 'completed';
+      stages[1].status = 'active';
+    } else if (status === 'rejected') {
+      stages[0].status = 'completed';
+      stages[1].status = 'rejected';
+    } else if (status === 'accepted' || status === 'hired') {
+      stages = stages.map(s => ({ ...s, status: 'completed' }));
+    }
+  }
 
   return (
     <div className="bg-white border-2 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-8">
@@ -30,6 +45,10 @@ const RecruitmentTimeline = () => {
                 <div className="w-6 h-6 rounded-full bg-sky-500 text-black flex items-center justify-center z-10 border-2 border-black animate-pulse">
                   <Circle size={10} fill="currentColor" />
                 </div>
+              ) : stage.status === 'rejected' ? (
+                <div className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center z-10 border-2 border-black">
+                  <XCircle size={12} />
+                </div>
               ) : (
                 <div className="w-6 h-6 rounded-full bg-white text-slate-300 flex items-center justify-center z-10 border-2 border-slate-300">
                   <Circle size={10} />
@@ -37,13 +56,15 @@ const RecruitmentTimeline = () => {
               )}
               
               {index < stages.length - 1 && (
-                <div className={`w-0.5 h-12 ${stage.status === 'completed' ? 'bg-black' : 'bg-slate-200'}`}></div>
+                <div className={`w-0.5 h-12 ${(stage.status === 'completed' || stage.status === 'rejected') ? 'bg-black' : 'bg-slate-200'}`}></div>
               )}
             </div>
             
             {/* Content */}
             <div className={`pb-8 ${stage.status === 'pending' ? 'opacity-50' : ''}`}>
-              <h4 className="font-black text-xs uppercase tracking-widest">{stage.title}</h4>
+              <h4 className={`font-black text-xs uppercase tracking-widest ${stage.status === 'rejected' ? 'text-red-500' : ''}`}>
+                {stage.title}
+              </h4>
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter mt-1">{stage.desc}</p>
             </div>
           </div>

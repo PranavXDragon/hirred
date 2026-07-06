@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, CheckCircle2, ArrowRight, Building2, 
@@ -113,9 +114,9 @@ const Insights = () => {
                     <Zap size={16} className="text-amber-500" />
                     <span className="text-xs font-black text-slate-700 uppercase">{item.impact}</span>
                   </div>
-                  <button className="flex items-center gap-2 font-black text-xs uppercase tracking-[0.1em] text-slate-900 group-hover:text-sky-600 transition-all">
+                  <Link href="/insights/case-studies" className="flex items-center gap-2 font-black text-xs uppercase tracking-[0.1em] text-slate-900 group-hover:text-sky-600 transition-all">
                     Read Case Study <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
-                  </button>
+                  </Link>
                 </div>
               </motion.div>
             ))}
@@ -146,8 +147,8 @@ const Insights = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post, index) => (
-              <motion.article
-                key={index}
+              <Link href="/insights/blogs" key={index} className="block h-full">
+                <motion.article
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -192,13 +193,14 @@ const Insights = () => {
                   </div>
                 </div>
               </motion.article>
+              </Link>
             ))}
           </div>
 
           <div className="text-center mt-16">
-            <button className="text-slate-900 font-black border-b-[3px] border-sky-600 pb-1 hover:text-sky-600 transition-all text-sm uppercase tracking-widest">
+            <Link href="/insights/blogs" className="text-slate-900 font-black border-b-[3px] border-sky-600 pb-1 hover:text-sky-600 transition-all text-sm uppercase tracking-widest inline-block">
               View All Insights
-            </button>
+            </Link>
           </div>
         </div>
       </section>

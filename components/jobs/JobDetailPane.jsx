@@ -7,8 +7,9 @@ import RecruiterActivity from './RecruiterActivity';
 import DeadlineTimer from './DeadlineTimer';
 import RecruitmentTimeline from './RecruitmentTimeline';
 import HRContactButtons from './HRContactButtons';
-import { submitApplication, toggleSavedJob } from '../../lib/actions/student';
+import { submitApplication, toggleSavedJob, incrementJobViews } from '../../lib/actions/student';
 import { createBrowserClient } from '@supabase/ssr';
+import { useAuth } from '../../context/AuthContext';
 
 const JobDetailPane = ({ job }) => {
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,12 @@ const JobDetailPane = ({ job }) => {
   const [error, setError] = useState('');
   const [isSaved, setIsSaved] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState(null);
+  const [applicantCount, setApplicantCount] = useState(0);
+  const [views, setViews] = useState(0);
+  
+  const { profile } = useAuth();
+  const isEmployer = profile?.role === 'employer';
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -24,20 +31,38 @@ const JobDetailPane = ({ job }) => {
 
   useEffect(() => {
     if (!job) return;
-    const checkSaved = async () => {
+    const fetchData = async () => {
+      const countRes = await supabase
+        .from('applications')
+        .select('*', { count: 'exact', head: true })
+        .eq('job_id', job.id);
+      
+      if (countRes.count !== null) {
+        setApplicantCount(countRes.count);
+      }
+
+      // Increment and fetch live views
+      const updatedViews = await incrementJobViews(job.id);
+      setViews(updatedViews);
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       
-      const { data } = await supabase
-        .from('saved_jobs')
-        .select('id')
-        .eq('job_id', job.id)
-        .eq('student_id', user.id)
-        .maybeSingle();
+      const [savedRes, appRes] = await Promise.all([
+        supabase.from('saved_jobs').select('id').eq('job_id', job.id).eq('student_id', user.id).maybeSingle(),
+        supabase.from('applications').select('status').eq('job_id', job.id).eq('student_id', user.id).maybeSingle()
+      ]);
         
-      setIsSaved(!!data);
+      setIsSaved(!!savedRes.data);
+      if (appRes.data) {
+        setApplicationStatus(appRes.data.status);
+        setSuccess(true);
+      } else {
+        setApplicationStatus(null);
+        setSuccess(false);
+      }
     };
-    checkSaved();
+    fetchData();
   }, [job]);
 
   const handleApply = async () => {
@@ -153,7 +178,7 @@ const JobDetailPane = ({ job }) => {
           
           <div className="space-y-0">
             <DeadlineTimer />
-            <RecruiterActivity />
+            <RecruiterActivity liveApplicants={applicantCount} lastActive={job.created_at} liveViews={views} />
           </div>
 
           {/* Core Stack */}
@@ -208,30 +233,38 @@ const JobDetailPane = ({ job }) => {
 
           {/* Recruitment Timeline */}
           <section>
-            <RecruitmentTimeline />
+            <RecruitmentTimeline currentStatus={applicationStatus} />
           </section>
         </div>
       </div>
 
       {/* Sticky Footer */}
       <div className="p-6 border-t-4 border-black relative bg-white flex-shrink-0 z-10">
-        {error && (
-          <div className="mb-4 bg-rose-100 border-2 border-rose-500 text-rose-700 font-bold p-4 text-xs uppercase tracking-widest text-center">
-            {error}
-          </div>
-        )}
-        {success ? (
-          <button disabled className="w-full bg-emerald-500 text-black py-4 text-sm font-black uppercase tracking-[0.2em] transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-[3px] border-black flex items-center justify-center gap-2">
-            <CheckCircle2 size={18} /> Protocol Submitted
+        {isEmployer ? (
+          <button disabled className="w-full bg-slate-100 text-slate-400 py-4 text-sm font-black uppercase tracking-[0.2em] border-[3px] border-slate-300 flex items-center justify-center cursor-not-allowed">
+            Employers Cannot Apply
           </button>
         ) : (
-          <button 
-            onClick={handleApply}
-            disabled={loading}
-            className="w-full bg-black text-white py-4 text-sm font-black uppercase tracking-[0.2em] hover:bg-sky-500 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none cursor-pointer flex items-center justify-center gap-2 border-[3px] border-black disabled:opacity-50"
-          >
-            {loading ? 'Transmitting...' : 'Apply Protocol'} {!loading && <ChevronRight size={18} />}
-          </button>
+          <>
+            {error && (
+              <div className="mb-4 bg-rose-100 border-2 border-rose-500 text-rose-700 font-bold p-4 text-xs uppercase tracking-widest text-center">
+                {error}
+              </div>
+            )}
+            {success ? (
+              <button disabled className="w-full bg-emerald-500 text-black py-4 text-sm font-black uppercase tracking-[0.2em] transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-[3px] border-black flex items-center justify-center gap-2">
+                <CheckCircle2 size={18} /> Protocol Submitted
+              </button>
+            ) : (
+              <button 
+                onClick={handleApply}
+                disabled={loading}
+                className="w-full bg-black text-white py-4 text-sm font-black uppercase tracking-[0.2em] hover:bg-sky-500 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none cursor-pointer flex items-center justify-center gap-2 border-[3px] border-black disabled:opacity-50"
+              >
+                {loading ? 'Transmitting...' : 'Apply Protocol'} {!loading && <ChevronRight size={18} />}
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

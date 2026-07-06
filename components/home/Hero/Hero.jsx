@@ -14,7 +14,7 @@ const Banner = () => {
       {/* Background Accents */}
       <div className="absolute top-0 right-0 w-[50%] h-full bg-sky-50/50 -skew-x-12 translate-x-20 -z-10" />
 
-      <div className="max-w-[1150px] mx-auto px-6 w-full py-20">
+      <div className="max-w-[1150px] mx-auto px-6 w-full py-10 md:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Left Content */}
@@ -29,7 +29,7 @@ const Banner = () => {
               Empowering 5M+ Professionals
             </motion.div>
             
-            <motion.h1 variants={fadeInUp} className="text-5xl lg:text-[75px] font-black text-black leading-[0.95] tracking-tighter mb-6 uppercase">
+            <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-[75px] font-black text-black leading-[0.95] tracking-tighter mb-6 uppercase break-words">
               ELEVATE YOUR <br />
               <span className="text-sky-500 italic">CAREER PATH.</span>
             </motion.h1>

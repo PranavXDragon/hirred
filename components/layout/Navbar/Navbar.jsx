@@ -191,7 +191,7 @@ const Navbar = () => {
             <motion.div 
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 h-full w-[85%] max-w-sm bg-white z-[120] p-10 shadow-2xl overflow-y-auto"
+              className="fixed top-0 left-0 h-full w-[90%] max-w-sm bg-white z-[120] p-6 sm:p-10 shadow-2xl overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-12">
                 <span className="text-xl font-black uppercase">Menu</span>
@@ -209,7 +209,7 @@ const Navbar = () => {
                       <div className="flex flex-col">
                         <button 
                           onClick={() => dd.setIsOpen(!dd.isOpen)}
-                          className="text-3xl font-bold text-black flex items-center justify-between"
+                          className="text-2xl sm:text-3xl font-bold text-black flex items-center justify-between"
                         >
                           {item.name} <ChevronDown className={`transition-transform ${dd.isOpen ? 'rotate-180' : ''}`} />
                         </button>
@@ -240,7 +240,7 @@ const Navbar = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
                         href={item.path} 
-                        className="text-3xl font-bold text-black hover:text-sky-500 transition-colors block"
+                        className="text-2xl sm:text-3xl font-bold text-black hover:text-sky-500 transition-colors block"
                       >
                         {item.name}
                       </motion.a>

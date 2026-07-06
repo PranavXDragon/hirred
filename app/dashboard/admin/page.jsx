@@ -36,7 +36,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <AdminDashboardClient 
-      user={session.user} 
+      user={user} 
       initialStats={stats} 
       initialUsers={users} 
     />

@@ -46,7 +46,7 @@ const getSearchKeywords = (query) => {
 
 import { useRouter } from 'next/navigation';
 
-const Careers = ({ searchQuery, setSearchQuery, searchLocation, setSearchLocation }) => {
+const Careers = ({ liveJobs = [], searchQuery, setSearchQuery, searchLocation, setSearchLocation }) => {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [allJobs, setAllJobs] = useState([]);
@@ -405,7 +405,11 @@ const Careers = ({ searchQuery, setSearchQuery, searchLocation, setSearchLocatio
              <Zap className="absolute -right-10 -bottom-10 opacity-20 text-black" size={300} />
              <h3 className="text-3xl font-black uppercase mb-6 text-black relative z-10 italic">Can't find a role?</h3>
              <p className="text-black font-bold mb-10 relative z-10">Send us your technical portfolio. We are always looking for rogue talent in the MERN stack and AI space.</p>
-             <button className="bg-black text-white px-12 py-5 font-black uppercase tracking-widest text-sm relative z-10 shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
+             <button 
+                type="button"
+                onClick={() => router.push('/dashboard/student')}
+                className="bg-black text-white px-12 py-5 font-black uppercase tracking-widest text-sm relative z-10 shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] cursor-pointer hover:bg-sky-500 hover:text-black transition-colors"
+             >
                 General Application <ArrowRight size={18} className="inline ml-2" />
              </button>
           </div>

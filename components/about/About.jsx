@@ -37,7 +37,7 @@ const About = () => {
             </span>
           </div>
           
-          <h2 className="text-4xl sm:text-6xl md:text-[100px] font-black tracking-tighter leading-[1.1] md:leading-[0.9] mb-8 md:mb-12 text-black">
+          <h2 className="text-4xl sm:text-6xl md:text-[100px] font-black tracking-tighter leading-[1.1] md:leading-[0.9] mb-8 md:mb-12 text-black break-words">
             WE BUILD THE <br />
             <span className="text-sky-500 italic">INFRASTRUCTURE</span> <br className="hidden md:block" />
             FOR ELITE TALENT.
@@ -70,7 +70,7 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.2 }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="bg-white p-8 md:p-14 hover:bg-sky-500 hover:text-white transition-all duration-500 group border-b-2 md:border-b-0 md:border-r-2 border-black last:border-b-0 last:border-r-0"
+              className="bg-white p-6 md:p-14 hover:bg-sky-500 hover:text-white transition-all duration-500 group border-b-2 md:border-b-0 md:border-r-2 border-black last:border-b-0 last:border-r-0"
             >
               <div className="w-8 h-8 md:w-10 md:h-10 border-2 border-black flex items-center justify-center text-[10px] font-black mb-12 md:mb-24 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all">
                 0{index + 1}
@@ -84,7 +84,7 @@ const About = () => {
         {/* --- Section 03: The CTA Box --- */}
         <motion.div 
           style={{ y: y1 }}
-          className="mt-24 md:mt-48 bg-black p-10 md:p-20 text-center relative overflow-hidden"
+          className="mt-24 md:mt-48 bg-black p-8 sm:p-10 md:p-20 text-center relative overflow-hidden"
         >
           {/* Sky Blue Glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-sky-500/10 blur-[80px] md:blur-[150px]"></div>

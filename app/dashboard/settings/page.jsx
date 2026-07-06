@@ -30,5 +30,15 @@ export default async function SettingsPage() {
     .eq('id', user.id)
     .single()
 
-  return <SettingsClient initialUser={profile} />
+  let company = null;
+  if (profile?.role === 'employer') {
+    const { data } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('employer_id', user.id)
+      .maybeSingle()
+    company = data;
+  }
+
+  return <SettingsClient initialUser={profile} initialCompany={company} />
 }

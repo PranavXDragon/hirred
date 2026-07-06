@@ -10,13 +10,14 @@ const AuthContext = createContext({
   profile: null,
   loading: true,
   signOut: () => Promise.resolve(),
+  signInWithOAuth: (provider) => Promise.resolve(),
 })
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [supabase] = useState(() => createClient())
   const router = useRouter()
   const { setTheme, setAccent, setDensity } = useTheme()
 
@@ -37,6 +38,29 @@ export function AuthProvider({ children }) {
           .maybeSingle()
           
         if (mounted && profileData) {
+          // Sync OAuth metadata if missing
+          const meta = user.user_metadata;
+          const oauthName = meta?.full_name || meta?.name;
+          const oauthAvatar = meta?.avatar_url || meta?.picture;
+          
+          let needsUpdate = false;
+          let updates = {};
+          
+          if (!profileData.full_name && oauthName) {
+            updates.full_name = oauthName;
+            needsUpdate = true;
+          }
+          if (!profileData.profile_photo && oauthAvatar) {
+            updates.profile_photo = oauthAvatar;
+            needsUpdate = true;
+          }
+
+          if (needsUpdate) {
+            await supabase.from('profiles').update(updates).eq('id', user.id);
+            profileData.full_name = profileData.full_name || updates.full_name;
+            profileData.profile_photo = profileData.profile_photo || updates.profile_photo;
+          }
+
           setProfile(profileData)
           if (profileData.preferences) {
             if (profileData.preferences.theme) setTheme(profileData.preferences.theme);
@@ -62,6 +86,29 @@ export function AuthProvider({ children }) {
             .maybeSingle()
             
           if (mounted && profileData) {
+            // Sync OAuth metadata if missing
+            const meta = session.user.user_metadata;
+            const oauthName = meta?.full_name || meta?.name;
+            const oauthAvatar = meta?.avatar_url || meta?.picture;
+            
+            let needsUpdate = false;
+            let updates = {};
+            
+            if (!profileData.full_name && oauthName) {
+              updates.full_name = oauthName;
+              needsUpdate = true;
+            }
+            if (!profileData.profile_photo && oauthAvatar) {
+              updates.profile_photo = oauthAvatar;
+              needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+              await supabase.from('profiles').update(updates).eq('id', session.user.id);
+              profileData.full_name = profileData.full_name || updates.full_name;
+              profileData.profile_photo = profileData.profile_photo || updates.profile_photo;
+            }
+
             setProfile(profileData)
             if (profileData.preferences) {
               if (profileData.preferences.theme) setTheme(profileData.preferences.theme);
@@ -69,10 +116,13 @@ export function AuthProvider({ children }) {
               if (profileData.preferences.density) setDensity(profileData.preferences.density);
             }
           }
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           if (mounted) {
             setUser(null)
             setProfile(null)
+            setTheme('light')
+            setAccent('sky')
+            setDensity('comfortable')
           }
         }
       }
@@ -89,8 +139,24 @@ export function AuthProvider({ children }) {
     router.push('/login')
   }
 
+  const signInWithOAuth = async (provider, role = 'student') => {
+    const callbackUrl = new URL(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`);
+    if (role) callbackUrl.searchParams.set('role', role);
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: callbackUrl.toString()
+      }
+    })
+    if (error) {
+      console.error('OAuth sign in error:', error)
+      throw error
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, signInWithOAuth }}>
       {children}
     </AuthContext.Provider>
   )

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import StudentDashboardClient from './StudentDashboardClient'
 import { getStudentApplications, getSavedJobs } from '../../../lib/actions/student'
+import { getJobs } from '../../../lib/actions/jobs'
 
 export default async function StudentDashboard() {
   const cookieStore = await cookies()
@@ -37,9 +38,10 @@ export default async function StudentDashboard() {
 
   const liveApplications = await getStudentApplications();
   const liveBookmarks = await getSavedJobs();
+  const liveJobs = await getJobs();
 
   // If profile was deleted (e.g. from table resets), pass a default object so the UI still works
   const initialUser = profile || { id: user.id, role: 'student', full_name: user.email?.split('@')[0] || 'User' };
 
-  return <StudentDashboardClient initialUser={initialUser} liveApplications={liveApplications} liveBookmarks={liveBookmarks} />
+  return <StudentDashboardClient initialUser={initialUser} liveApplications={liveApplications} liveBookmarks={liveBookmarks} liveJobs={liveJobs} />
 }

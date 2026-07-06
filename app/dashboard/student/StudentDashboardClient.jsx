@@ -72,52 +72,27 @@ export default function StudentDashboardClient({ initialUser, liveApplications =
     ];
     setJobAlerts(defaultAlerts);
 
-    const allJobs = [
-      {
-        id: 'rec1',
-        title: 'React Frontend Developer',
-        companyName: 'Cloudflare',
-        department: 'Engineering',
-        salary: '₹14 - ₹20 LPA',
-        location: 'Remote',
-        type: 'Full-time',
-        description: 'We are seeking an expert Frontend Engineer skilled in React, Tailwind CSS, and edge rendering.',
-        applicantsCount: 12,
-        datePosted: 'Jun 28, 2026'
-      },
-      {
-        id: 'rec2',
-        title: 'DevOps & Cloud Architect',
-        companyName: 'HashiCorp',
-        department: 'Infrastructure',
-        salary: '₹18 - ₹26 LPA',
-        location: 'Nagpur, India',
-        type: 'Full-time',
-        description: 'Scale our cloud orchestration clusters. Experience with Docker, Kubernetes, Terraform, and Go is required.',
-        applicantsCount: 8,
-        datePosted: 'Jun 29, 2026'
-      },
-      {
-        id: 'rec3',
-        title: 'Full Stack Node Developer',
-        companyName: 'Vercel',
-        department: 'Core Platforms',
-        salary: '₹16 - ₹24 LPA',
-        location: 'Remote',
-        type: 'Full-time',
-        description: 'Build backend microservices and serverless infrastructure using Node.js, Express, PostgreSQL, and Redis.',
-        applicantsCount: 15,
-        datePosted: 'Jun 30, 2026'
-      }
-    ];
+    const allJobs = (liveJobs || []).map(job => ({
+      id: job.id,
+      title: job.role,
+      companyName: job.company,
+      department: job.category || 'Engineering',
+      salary: job.salary || 'Not specified',
+      location: job.location,
+      type: job.type || 'Full-time',
+      description: job.description,
+      applicantsCount: job.views || 0,
+      datePosted: job.posted
+    }));
     
-    const candidateSkills = initialUser?.skills || ['React', 'JavaScript', 'Tailwind CSS'];
+    const candidateSkills = initialUser?.skills || [];
     const matched = allJobs.filter(job => {
-      const descText = (job.title + ' ' + job.description + ' ' + job.department).toLowerCase();
+      if (candidateSkills.length === 0) return true;
+      const descText = (job.title + ' ' + (job.description || '') + ' ' + job.department).toLowerCase();
       return candidateSkills.some(skill => descText.includes(skill.toLowerCase()));
     });
     setRecommendedJobs(matched.length > 0 ? matched : allJobs);
-  }, [initialUser?.skills]);
+  }, [initialUser?.skills, liveJobs]);
 
   const handleQuickApply = (job) => {
     if (applications.some(app => app.jobTitle === job.title && app.companyName === job.companyName)) {

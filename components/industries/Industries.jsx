@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Cpu, Building2, Stethoscope, BarChart4, GraduationCap, Plus, Zap 
@@ -137,9 +138,9 @@ const Industries = () => {
                       <p className="text-slate-600 font-bold leading-tight max-w-sm mb-6 text-sm md:text-lg">
                         {item.desc}
                       </p>
-                      <button className="flex items-center gap-3 bg-black text-white px-6 py-3 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-sky-500 transition-all shadow-[4px_4px_0px_0px_rgba(14,165,233,1)]">
+                      <Link href="/industries" className="flex items-center gap-3 bg-black text-white px-6 py-3 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-sky-500 hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(14,165,233,1)] inline-flex w-fit">
                         Explore <Plus size={14} />
-                      </button>
+                      </Link>
                     </motion.div>
                   )}
                 </AnimatePresence>

@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   Linkedin,
   Instagram,
-  Twitter,
   Facebook,
   ArrowRight,
   Mail,
@@ -16,6 +15,19 @@ import {
   Check
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
+
+const XIcon = ({ size = 24, className = "" }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="currentColor" 
+    className={className}
+  >
+    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/>
+  </svg>
+);
 
 const Footer = () => {
   const { profile } = useAuth();
@@ -126,7 +138,7 @@ const Footer = () => {
                 <input 
                   type="email" 
                   required
-                  placeholder="EMAIL@DOMAIN.COM"
+                  placeholder="SUPPORT@HIRRD.TECH"
                   className="bg-neutral-900 text-white placeholder-slate-600 px-3 py-2 text-xs font-black uppercase w-full focus:outline-none"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
@@ -187,22 +199,27 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="text-sky-400 shrink-0" size={16} />
-                <p className="font-black text-white">+1 (555) 123-4567</p>
+                <p className="font-black text-white">9356671329</p>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="text-sky-400 shrink-0" size={16} />
-                <a href="mailto:demo@example.com" className="font-black text-sky-400 hover:underline break-all">
-                  demo@example.com
+                <a href="mailto:Support@hirrd.tech" className="font-black text-sky-400 hover:underline break-all">
+                  Support@hirrd.tech
                 </a>
               </div>
             </div>
             
             {/* Social Links */}
             <div className="flex gap-4 pt-2">
-              {[Linkedin, Twitter, Instagram, Facebook].map((Icon, i) => (
-                <div key={i} className="border border-neutral-800 hover:border-sky-400 p-2 transition-colors cursor-pointer bg-neutral-950">
-                  <Icon size={16} className="text-slate-400 hover:text-sky-400" />
-                </div>
+              {[
+                { Icon: Linkedin, url: 'https://www.linkedin.com/company/hirrdtech' },
+                { Icon: XIcon, url: 'https://x.com/hirrdhq' },
+                { Icon: Instagram, url: 'https://www.instagram.com/hirrdhq/' },
+                { Icon: Facebook, url: '#' }
+              ].map((social, i) => (
+                <a href={social.url} target="_blank" rel="noopener noreferrer" key={i} className="border border-neutral-800 hover:border-sky-400 p-2 transition-colors cursor-pointer bg-neutral-950 block">
+                  <social.Icon size={16} className="text-slate-400 hover:text-sky-400" />
+                </a>
               ))}
             </div>
           </motion.div>

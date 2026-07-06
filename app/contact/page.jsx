@@ -141,7 +141,7 @@ const ContactPage = () => {
                   <div className="w-10 h-10 border-2 border-black flex items-center justify-center bg-sky-50">
                     <Mail size={18} />
                   </div>
-                  <span className="font-black text-[10px] uppercase tracking-widest">demo@example.com</span>
+                  <span className="font-black text-[10px] uppercase tracking-widest">Support@hirrd.tech</span>
                </div>
                <div className="flex items-center gap-4">
                   <div className="w-10 h-10 border-2 border-black flex items-center justify-center bg-sky-50">

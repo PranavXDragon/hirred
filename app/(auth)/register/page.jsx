@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Eye, EyeOff, ArrowRight, Github, Linkedin, Building, ShieldCheck } from 'lucide-react';
 import { register } from '@/lib/actions/auth';
+import { useAuth } from '@/context/AuthContext';
 
 const SignupPage = () => {
+  const { signInWithOAuth } = useAuth();
   const [role, setRole] = useState('student'); // 'student' | 'employer' | 'admin'
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +20,18 @@ const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [oauthLoading, setOauthLoading] = useState(false);
+
+  const handleOAuthLogin = async (provider) => {
+    try {
+      setOauthLoading(true);
+      setError('');
+      await signInWithOAuth(provider, role);
+    } catch (err) {
+      setError(err.message || 'OAuth sign up failed');
+      setOauthLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,6 +66,9 @@ const SignupPage = () => {
         setError(result.error);
       }
     } catch (err) {
+      if (err?.message?.includes('NEXT_REDIRECT')) {
+        throw err;
+      }
       setError('An error occurred during registration.');
       console.error(err);
     }
@@ -88,7 +105,7 @@ const SignupPage = () => {
           </h1>
 
           {/* Role Swapper Tabs */}
-          <div className="grid grid-cols-3 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
+          <div className="grid grid-cols-2 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
             <button 
               type="button" 
               onClick={() => { setRole('student'); setError(''); }}
@@ -106,15 +123,6 @@ const SignupPage = () => {
               }`}
             >
               Employer
-            </button>
-            <button 
-              type="button" 
-              onClick={() => { setRole('admin'); setError(''); }}
-              className={`py-2 text-[10px] font-black uppercase tracking-wider transition-all duration-200 ${
-                role === 'admin' ? 'bg-black text-white' : 'hover:bg-slate-200 text-slate-500'
-              }`}
-            >
-              Admin
             </button>
           </div>
 
@@ -270,7 +278,9 @@ const SignupPage = () => {
             {/* Google */}
             <button 
               type="button"
-              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors"
+              onClick={() => handleOAuthLogin('google')}
+              disabled={oauthLoading}
+              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors disabled:opacity-50"
               title="Google"
             >
               <svg className="w-5 h-5 text-black" viewBox="0 0 24 24" fill="currentColor">
@@ -281,7 +291,9 @@ const SignupPage = () => {
             {/* LinkedIn */}
             <button 
               type="button"
-              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors"
+              onClick={() => handleOAuthLogin('linkedin_oidc')}
+              disabled={oauthLoading}
+              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors disabled:opacity-50"
               title="LinkedIn"
             >
               <Linkedin className="w-5 h-5 text-black" />
@@ -290,7 +302,9 @@ const SignupPage = () => {
             {/* GitHub */}
             <button 
               type="button"
-              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors"
+              onClick={() => handleOAuthLogin('github')}
+              disabled={oauthLoading}
+              className="border-2 border-black p-3 flex items-center justify-center hover:bg-sky-50 active:bg-sky-100 transition-colors disabled:opacity-50"
               title="GitHub"
             >
               <Github className="w-5 h-5 text-black" />

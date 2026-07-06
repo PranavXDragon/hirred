@@ -1,8 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Send, MapPin, Phone, Mail, ArrowRight, Linkedin, Twitter, Instagram, Clock } from 'lucide-react';
 
 const Contact = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name || !email || !message) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const fullMessage = subject ? `Subject: ${subject}\n\n${message}` : message;
+      
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([
+          { name, email, message: fullMessage }
+        ]);
+        
+      if (error) throw error;
+      
+      toast.success('Message sent successfully!');
+      setName('');
+      setEmail('');
+      setSubject('');
+      setMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -48,30 +94,30 @@ const Contact = () => {
             <div className="bg-[#fcfdfe] border border-slate-100 p-8 lg:p-12 rounded-3xl shadow-sm">
               <h3 className="text-2xl font-semibold text-slate-900 mb-8">Send a Message</h3>
               
-              <form className="space-y-8">
+              <form className="space-y-8" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 ml-1">Your Name</label>
-                    <input type="text" placeholder="Pranav navghare" className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-50 focus:outline-none transition-all placeholder:text-slate-300 font-medium" />
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 ml-1">Your Name *</label>
+                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Pranav navghare" className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-50 focus:outline-none transition-all placeholder:text-slate-300 font-medium" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 ml-1">Email Address</label>
-                    <input type="email" placeholder="demo@example.com" className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-50 focus:outline-none transition-all placeholder:text-slate-300 font-medium" />
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 ml-1">Email Address *</label>
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Support@hirrd.tech" className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-50 focus:outline-none transition-all placeholder:text-slate-300 font-medium" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 ml-1">Subject</label>
-                  <input type="text" placeholder="Project Inquiry" className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-50 focus:outline-none transition-all placeholder:text-slate-300 font-medium" />
+                  <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Project Inquiry" className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-50 focus:outline-none transition-all placeholder:text-slate-300 font-medium" />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 ml-1">Message</label>
-                  <textarea rows="4" placeholder="How can we help you?" className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-50 focus:outline-none transition-all placeholder:text-slate-300 font-medium resize-none"></textarea>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 ml-1">Message *</label>
+                  <textarea rows="4" value={message} onChange={(e) => setMessage(e.target.value)} required placeholder="How can we help you?" className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-50 focus:outline-none transition-all placeholder:text-slate-300 font-medium resize-none"></textarea>
                 </div>
 
-                <button className="w-full bg-slate-900 text-white py-5 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-sky-600 transition-all shadow-lg shadow-slate-200 hover:shadow-sky-100">
-                  Send Inquiry <ArrowRight size={18} />
+                <button type="submit" disabled={isSubmitting} className="w-full bg-slate-900 text-white py-5 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-sky-600 transition-all shadow-lg shadow-slate-200 hover:shadow-sky-100 disabled:opacity-70 disabled:cursor-not-allowed">
+                  {isSubmitting ? 'Sending...' : 'Send Inquiry'} <ArrowRight size={18} />
                 </button>
               </form>
             </div>
@@ -116,7 +162,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-900 text-sm uppercase tracking-tighter">Support</h4>
-                  <p className="text-slate-500 text-[15px] font-medium leading-relaxed">demo@example.com<br />24/7 Response Time</p>
+                  <p className="text-slate-500 text-[15px] font-medium leading-relaxed">Support@hirrd.tech<br />24/7 Response Time</p>
                 </div>
               </div>
 
@@ -126,7 +172,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-900 text-sm uppercase tracking-tighter">Call</h4>
-                  <p className="text-slate-500 text-[15px] font-medium leading-relaxed">+1 (555) 123-4567<br />Mon - Fri, 10am - 7pm</p>
+                  <p className="text-slate-500 text-[15px] font-medium leading-relaxed">9356671329<br />Mon - Fri, 10am - 7pm</p>
                 </div>
               </div>
 

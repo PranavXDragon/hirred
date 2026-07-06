@@ -5,6 +5,7 @@ import Navbar from '../components/layout/Navbar/Navbar';
 import Footer from '../components/layout/Footer/Footer';
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider } from '../context/ThemeContext';
+import { Toaster } from 'react-hot-toast';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <AuthProvider>
         <Navbar />
         {children}
+        <Toaster position="top-right" />
         {!isPayPage && <Footer />}
       </AuthProvider>
     </ThemeProvider>
