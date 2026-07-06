@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const roleOverride = requestUrl.searchParams.get('role');
+  
+  // Read role from cookie instead of query parameter
+  const cookieStore = await cookies();
+  const oauthRoleCookie = cookieStore.get('oauth_role');
+  const roleOverride = oauthRoleCookie ? oauthRoleCookie.value : null;
 
   if (code) {
     const supabase = await createClient();
@@ -28,7 +33,9 @@ export async function GET(request) {
       // If no specific 'next' param was provided, route them based on their role
       const actualNext = requestUrl.searchParams.get('next') ?? `/dashboard/${role}`;
       
-      return NextResponse.redirect(new URL(actualNext, request.url));
+      const response = NextResponse.redirect(new URL(actualNext, request.url));
+      response.cookies.set('oauth_role', '', { maxAge: 0 }); // Clear the cookie
+      return response;
     } else {
       console.error('Callback error:', error);
     }

@@ -140,6 +140,11 @@ export function AuthProvider({ children }) {
   }
 
   const signInWithOAuth = async (provider, role = 'student') => {
+    // Pass role securely via cookie since query parameters break Supabase wildcard match
+    if (typeof document !== 'undefined') {
+      document.cookie = `oauth_role=${role}; path=/; max-age=300; SameSite=Lax`;
+    }
+
     // Hardcode the absolute URL to guarantee it perfectly matches the Supabase allowlist
     const callbackUrl = 'https://hirrd.tech/auth/callback';
 
