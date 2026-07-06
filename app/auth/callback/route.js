@@ -15,13 +15,14 @@ export async function GET(request) {
     if (!error && sessionData?.session?.user) {
       const user = sessionData.session.user;
       let role = user.user_metadata?.role || 'student';
+      if (role === 'employee') role = 'student'; // Handle legacy users
 
       if (roleOverride && roleOverride !== role) {
-        role = roleOverride;
+        role = roleOverride === 'employee' ? 'student' : roleOverride;
         // Update auth metadata
-        await supabase.auth.updateUser({ data: { role: roleOverride } });
+        await supabase.auth.updateUser({ data: { role } });
         // Update public profiles table
-        await supabase.from('profiles').update({ role: roleOverride }).eq('id', user.id);
+        await supabase.from('profiles').update({ role }).eq('id', user.id);
       }
       
       // If no specific 'next' param was provided, route them based on their role
