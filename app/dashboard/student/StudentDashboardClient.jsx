@@ -11,7 +11,7 @@ import { createBrowserClient } from '@supabase/ssr';
 
 import { toggleSavedJob } from '../../../lib/actions/student';
 
-export default function StudentDashboardClient({ initialUser, liveApplications = [], liveBookmarks = [] }) {
+export default function StudentDashboardClient({ initialUser, liveApplications = [], liveBookmarks = [], liveJobs = [] }) {
   const [user, setUser] = useState(initialUser);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
