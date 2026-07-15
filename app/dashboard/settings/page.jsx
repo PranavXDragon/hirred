@@ -31,6 +31,8 @@ export default async function SettingsPage() {
     .single()
 
   let company = null;
+  let mentor = null;
+  
   if (profile?.role === 'employer') {
     const { data } = await supabase
       .from('companies')
@@ -38,7 +40,14 @@ export default async function SettingsPage() {
       .eq('employer_id', user.id)
       .maybeSingle()
     company = data;
+  } else if (profile?.role === 'mentor') {
+    const { data } = await supabase
+      .from('mentors')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle()
+    mentor = data;
   }
 
-  return <SettingsClient initialUser={profile} initialCompany={company} />
+  return <SettingsClient initialUser={profile} initialCompany={company} initialMentor={mentor} />
 }

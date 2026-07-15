@@ -2,8 +2,17 @@
 
 import React, { useState } from 'react';
 import { saveCompanyProfile } from '../../../lib/actions/employer';
-import { Building, Globe, MapPin, Users, CheckCircle2 } from 'lucide-react';
+import { Building, Globe, MapPin, Users, CheckCircle2, AlignLeft, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+const availablePerks = [
+  { iconName: 'Rocket', title: 'Hyper-Growth', desc: 'Join a scaling team working on high-impact products.' },
+  { iconName: 'ShieldCheck', title: 'Elite Benefits', desc: 'Top-tier health, dental, and wellness stipends.' },
+  { iconName: 'Coffee', title: 'Flexible Culture', desc: 'Remote-first or hybrid. You choose where you do your best work.' },
+  { iconName: 'Code', title: 'Modern Stack', desc: 'Work with Next.js, Rust, Go, and the latest AI models.' },
+  { iconName: 'Zap', title: 'Fast Execution', desc: 'Zero red tape. Ship code to production on day one.' },
+  { iconName: 'HeartHandshake', title: 'Equity Grants', desc: 'Own a piece of the architecture you build.' },
+];
 
 const CompanyProfileForm = ({ initialData }) => {
   const [formData, setFormData] = useState({
@@ -13,6 +22,8 @@ const CompanyProfileForm = ({ initialData }) => {
     size: initialData?.size || '',
     remote: initialData?.remote ? 'true' : 'false',
     website: initialData?.website || '',
+    about: initialData?.about || '',
+    perks: initialData?.perks || [],
     workLife: initialData?.culture_ratings?.workLife || 0,
     compensation: initialData?.culture_ratings?.compensation || 0,
     culture: initialData?.culture_ratings?.culture || 0,
@@ -25,6 +36,15 @@ const CompanyProfileForm = ({ initialData }) => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const togglePerk = (perk) => {
+    const exists = formData.perks.find(p => p.title === perk.title);
+    if (exists) {
+      setFormData({ ...formData, perks: formData.perks.filter(p => p.title !== perk.title) });
+    } else {
+      setFormData({ ...formData, perks: [...formData.perks, perk] });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -132,6 +152,57 @@ const CompanyProfileForm = ({ initialData }) => {
               <option value="false">On-Site / Hybrid Only</option>
             </select>
           </div>
+        </div>
+      </div>
+
+      {/* About Section */}
+      <div className="bg-white border-[4px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <h3 className="text-xl font-black uppercase tracking-tighter mb-6 border-b-4 border-black pb-4 flex items-center gap-2">
+          <AlignLeft className="text-sky-500" /> About Organization
+        </h3>
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Company Overview</label>
+          <textarea 
+            name="about"
+            value={formData.about}
+            onChange={handleChange}
+            placeholder="Tell job seekers about your mission, vision, and what makes your company unique..."
+            rows={6}
+            className="w-full border-[3px] border-black p-4 font-bold focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(14,165,233,1)] transition-all bg-slate-50 resize-none"
+          />
+        </div>
+      </div>
+
+      {/* Perks Selector */}
+      <div className="bg-white border-[4px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <h3 className="text-xl font-black uppercase tracking-tighter mb-2 flex items-center gap-2">
+          <Award className="text-emerald-500" /> Perks & Benefits
+        </h3>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 border-b-4 border-black pb-4">
+          Select the benefits you offer to showcase on your profile.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {availablePerks.map(perk => {
+            const isSelected = !!formData.perks.find(p => p.title === perk.title);
+            return (
+              <button
+                key={perk.title}
+                type="button"
+                onClick={() => togglePerk(perk)}
+                className={`text-left p-4 border-[3px] transition-all flex flex-col gap-1 ${
+                  isSelected 
+                    ? 'border-black bg-emerald-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
+                    : 'border-slate-200 bg-white hover:border-black'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-black text-xs uppercase tracking-widest text-black">{perk.title}</span>
+                  {isSelected && <CheckCircle2 size={16} className="text-emerald-600" />}
+                </div>
+                <span className="text-[10px] font-bold text-slate-500 leading-tight">{perk.desc}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 

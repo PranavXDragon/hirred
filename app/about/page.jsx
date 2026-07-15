@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ShieldCheck, Zap, Globe, Cpu, Users, BarChart } from 'lucide-react';
+import Link from 'next/link';
 
 const AboutPage = () => {
   const { scrollYProgress } = useScroll();
@@ -127,9 +128,9 @@ const AboutPage = () => {
                DEFINING THE NEW <span className="text-black italic">Hiring Standard</span> FOR 2026.
              </h2>
              <div className="w-full md:w-auto">
-                <button className="bg-black text-white px-12 py-6 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-all w-full md:w-auto">
+                <Link href="/services" className="bg-black text-white px-12 py-6 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-all w-full md:w-auto inline-block text-center">
                   View Our Services
-                </button>
+                </Link>
              </div>
           </motion.div>
 
@@ -141,12 +142,12 @@ const AboutPage = () => {
               Our Nagpur headquarters is ready to facilitate your next expansion.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <button className="border-2 border-black px-12 py-5 font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all">
+              <Link href="/contact" className="border-2 border-black px-12 py-5 font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all inline-block text-center">
                 Work with us
-              </button>
-              <button className="bg-sky-500 text-white px-12 py-5 font-black uppercase tracking-widest shadow-xl shadow-sky-100 hover:bg-sky-600 transition-all">
+              </Link>
+              <Link href="/dashboard/employer" className="bg-sky-500 text-white px-12 py-5 font-black uppercase tracking-widest shadow-xl shadow-sky-100 hover:bg-sky-600 transition-all inline-block text-center">
                 Find Talent
-              </button>
+              </Link>
             </div>
           </div>
 

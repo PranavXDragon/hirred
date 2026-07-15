@@ -5,6 +5,14 @@ import {
   Cpu, Building2, Stethoscope, BarChart4, GraduationCap, Plus, Zap 
 } from 'lucide-react';
 
+const slugMap = {
+  "Technology & IT": "technology-it",
+  "Real Estate": "real-estate",
+  "Healthcare": "healthcare",
+  "FinTech": "fintech",
+  "Education": "education"
+};
+
 const Industries = () => {
   const [hoveredIndex, setHoveredIndex] = useState(0);
 
@@ -138,7 +146,7 @@ const Industries = () => {
                       <p className="text-slate-600 font-bold leading-tight max-w-sm mb-6 text-sm md:text-lg">
                         {item.desc}
                       </p>
-                      <Link href="/industries" className="flex items-center gap-3 bg-black text-white px-6 py-3 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-sky-500 hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(14,165,233,1)] inline-flex w-fit">
+                      <Link href={`/industries/${slugMap[item.title]}`} className="flex items-center gap-3 bg-black text-white px-6 py-3 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-sky-500 hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(14,165,233,1)] inline-flex w-fit">
                         Explore <Plus size={14} />
                       </Link>
                     </motion.div>

@@ -25,6 +25,7 @@ const ContactPage = () => {
       ]);
       
     setIsSubmitting(false);
+    
     if (!error) {
       setIsSuccess(true);
       setFormData({ name: '', email: '', message: '' });

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+
 import { 
   Briefcase, 
   MapPin, 
   Clock, 
-  DollarSign, 
+  IndianRupee, 
   Filter, 
   ChevronRight, 
   Search,
@@ -52,130 +53,6 @@ const Careers = ({ liveJobs = [], searchQuery, setSearchQuery, searchLocation, s
   const [allJobs, setAllJobs] = useState([]);
 
   useEffect(() => {
-    const hardcoded = [
-      {
-        id: "hc1",
-        role: "Senior Full Stack Developer",
-        company: "hirrd Core",
-        type: "Full-Time",
-        location: "Remote / Nagpur",
-        salary: "₹18L - ₹24L",
-        stack: ["React", "Node.js", "AWS", "JavaScript"],
-        category: "Engineering",
-        posted: "2 days ago"
-      },
-      {
-        id: "hc2",
-        role: "AI Model Trainer",
-        company: "Inphora IT Solutions",
-        type: "Contract",
-        location: "Hybrid",
-        salary: "₹12L - ₹15L",
-        stack: ["Python", "PyTorch", "NLP", "Machine Learning"],
-        category: "AI/ML",
-        posted: "5 days ago"
-      },
-      {
-        id: "hc3",
-        role: "Technical UI/UX Designer",
-        company: "SkinnVeda Projects",
-        type: "Full-Time",
-        location: "Remote",
-        salary: "₹10L - ₹14L",
-        stack: ["Figma", "Framer", "CSS", "UIUX"],
-        category: "Design",
-        posted: "1 week ago"
-      },
-      {
-        id: "hc4",
-        role: "DevOps Architect",
-        company: "hirrd Tech",
-        type: "Full-Time",
-        location: "Nagpur HQ",
-        salary: "₹22L - ₹30L",
-        stack: ["Docker", "K8s", "CI/CD", "AWS", "DevOps"],
-        category: "DevOps/Cloud",
-        posted: "3 days ago"
-      },
-      {
-        id: "hc5",
-        role: "Lead Cybersecurity Engineer",
-        company: "Securify Labs",
-        type: "Full-Time",
-        location: "Remote",
-        salary: "₹20L - ₹28L",
-        stack: ["Pentesting", "OWASP", "Python", "Security", "Firewall"],
-        category: "Cyber Security",
-        posted: "4 days ago"
-      },
-      {
-        id: "hc6",
-        role: "Senior Data Scientist",
-        company: "DataMetrics Corp",
-        type: "Full-Time",
-        location: "Nagpur, MH",
-        salary: "₹16L - ₹22L",
-        stack: ["Python", "SQL", "Pandas", "Machine Learning", "Data Science"],
-        category: "Data Science",
-        posted: "1 day ago"
-      },
-      {
-        id: "hc7",
-        role: "Technical Product Manager",
-        company: "hirrd Ventures",
-        type: "Full-Time",
-        location: "Hybrid",
-        salary: "₹24L - ₹32L",
-        stack: ["Product", "Scrum", "Agile", "Jira", "Roadmap"],
-        category: "Management",
-        posted: "6 days ago"
-      },
-      {
-        id: "hc8",
-        role: "Cloud Infrastructure Specialist",
-        company: "SkyScale Solutions",
-        type: "Contract",
-        location: "Remote / Nagpur",
-        salary: "₹14L - ₹18L",
-        stack: ["AWS", "Terraform", "DevOps", "GCP", "Kubernetes"],
-        category: "DevOps/Cloud",
-        posted: "1 week ago"
-      },
-      {
-        id: "hc9",
-        role: "Mobile App Architect (iOS & Android)",
-        company: "Appify Mobile",
-        type: "Full-Time",
-        location: "Nagpur HQ",
-        salary: "₹18L - ₹25L",
-        stack: ["React Native", "iOS", "Android", "JavaScript", "TypeScript"],
-        category: "Engineering",
-        posted: "5 days ago"
-      },
-      {
-        id: "hc10",
-        role: "QA Automation Lead",
-        company: "QualityFirst Co",
-        type: "Full-Time",
-        location: "Remote",
-        salary: "₹12L - ₹16L",
-        stack: ["Cypress", "Selenium", "JavaScript", "QA Testing"],
-        category: "Engineering",
-        posted: "3 days ago"
-      },
-      {
-        id: "hc11",
-        role: "Web3 Blockchain Architect",
-        company: "CryptoNode Technologies",
-        type: "Full-Time",
-        location: "Remote",
-        salary: "₹25L - ₹35L",
-        stack: ["Solidity", "Web3", "Ethereum", "Smart Contracts", "Cryptography"],
-        category: "Engineering",
-        posted: "2 days ago"
-      }
-    ];
-
     try {
       const posted = JSON.parse(localStorage.getItem('postedJobs') || '[]');
       const transformedPosted = posted.map(j => ({
@@ -191,11 +68,11 @@ const Careers = ({ liveJobs = [], searchQuery, setSearchQuery, searchLocation, s
         category: j.department || 'Engineering',
         posted: j.datePosted || 'Just now'
       }));
-      setAllJobs([...transformedPosted, ...hardcoded]);
+      setAllJobs([...liveJobs, ...transformedPosted]);
     } catch {
-      setAllJobs(hardcoded);
+      setAllJobs(liveJobs);
     }
-  }, []);
+  }, [liveJobs]);
 
   const categories = ["All", "Engineering", "Design", "AI/ML", "DevOps/Cloud", "Cyber Security", "Data Science", "Management"];
 
@@ -315,7 +192,7 @@ const Careers = ({ liveJobs = [], searchQuery, setSearchQuery, searchLocation, s
           </aside>
 
           {/* Main List: Job Cards */}
-          <main className="lg:col-span-3 space-y-6">
+          <main className="lg:col-span-3 space-y-6 max-h-[900px] overflow-y-auto pr-2">
             <AnimatePresence mode="popLayout">
               {filteredJobs.length === 0 ? (
                 <motion.div 
@@ -356,13 +233,13 @@ const Careers = ({ liveJobs = [], searchQuery, setSearchQuery, searchLocation, s
 
                         <div className="flex flex-wrap gap-4 text-xs font-bold text-slate-500">
                           <div className="flex items-center gap-1"><MapPin size={14} className="text-black" /> {job.location}</div>
-                          <div className="flex items-center gap-1"><DollarSign size={14} className="text-black" /> {job.salary}</div>
+                          <div className="flex items-center gap-1"><IndianRupee size={14} className="text-black" /> {job.salary}</div>
                           <div className="flex items-center gap-1"><Code size={14} className="text-black" /> {job.stack.join(", ")}</div>
                         </div>
                       </div>
 
                       <button 
-                        onClick={() => router.push(`/jobs?id=${job.id}`)}
+                        onClick={() => router.push(`/jobs/${job.slug}`)}
                         className="flex items-center gap-3 bg-black text-white px-8 py-4 font-black uppercase text-[10px] tracking-widest hover:bg-sky-500 hover:text-black transition-all border-2 border-black shrink-0">
                         Apply Now <ChevronRight size={16} />
                       </button>
@@ -378,6 +255,8 @@ const Careers = ({ liveJobs = [], searchQuery, setSearchQuery, searchLocation, s
             </AnimatePresence>
           </main>
         </div>
+
+
 
         {/* --- Protocol Section (Why Join Us) --- */}
         <section className="py-20 border-t-4 border-black mb-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">

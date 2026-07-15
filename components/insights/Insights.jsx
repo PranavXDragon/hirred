@@ -10,17 +10,17 @@ const Insights = () => {
   const cases = [
     {
       title: "Scaling Engineering Excellence",
-      client: "TechFlow Systems",
+      client: "Hirrd × TechFlow Systems",
       impact: "Reduced Time-to-Hire by 60%",
-      desc: "How we helped a leading SaaS startup find 50+ senior developers within 3 months using our AI-matching engine.",
+      desc: "How Hirrd helped a leading SaaS startup source and hire 50+ senior developers within 3 months using our proprietary AI-matching recruitment engine.",
       color: "from-blue-600 to-sky-500",
       image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800"
     },
     {
       title: "Global Talent Acquisition",
-      client: "Global Logistics Ltd",
+      client: "Hirrd × Global Logistics Ltd",
       impact: "95% Candidate Retention",
-      desc: "Streamlining the recruitment process for a Fortune 500 company across 5 different countries.",
+      desc: "Streamlining the enterprise recruitment process across 5 different countries by integrating Hirrd's automated vetting and placement protocols.",
       color: "from-slate-900 to-slate-700",
       image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800"
     }
@@ -28,28 +28,28 @@ const Insights = () => {
 
   const posts = [
     {
-      tag: "Career Growth",
-      title: "10 Skills That Will Dominate the 2026 Job Market",
-      author: "Admin",
+      tag: "Hirrd Updates",
+      title: "10 Features Coming to the Hirrd AI-Matching Engine",
+      author: "Hirrd Product Team",
       date: "March 10, 2026",
       image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600",
-      desc: "As AI evolves, these human-centric skills are becoming more valuable than ever."
+      desc: "An exclusive look at how our next major update will revolutionize the way you find top-tier engineering talent."
     },
     {
       tag: "Recruitment",
-      title: "How to Build a High-Performance Remote Culture",
-      author: "Digital India Biz",
+      title: "How Hirrd Automates Technical Vetting",
+      author: "Hirrd Engineering",
       date: "March 05, 2026",
       image: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=600",
-      desc: "A guide for recruiters and founders on managing talent across different time zones."
+      desc: "A deep dive into the infrastructure that allows us to assess developer skills with zero human bias."
     },
     {
-      tag: "Interview Tips",
-      title: "The Art of Negotiating Your Salary in Tech",
-      author: "Career Coach",
+      tag: "Talent Trends",
+      title: "The State of Remote Engineering in 2026",
+      author: "Hirrd Research",
       date: "Feb 28, 2026",
       image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=600",
-      desc: "Don't settle for less. Learn the proven strategies to get the compensation you deserve."
+      desc: "Our proprietary data reveals the compensation and culture strategies winning the war for talent."
     }
   ];
 

@@ -19,7 +19,7 @@ export default function StudentDashboardClient({ initialUser, liveApplications =
     bio: initialUser?.bio || 'Elite job seeker seeking premium opportunities.',
     location: initialUser?.location || 'Nagpur, India',
     experience: initialUser?.experience || 'Fresher',
-    skillsString: (initialUser?.skills || ['React', 'JavaScript', 'Tailwind CSS']).join(', '),
+    skillsString: (initialUser?.skills || []).join(', '),
     profilePicture: initialUser?.profile_photo || '',
     phone: initialUser?.phone || '',
     college: initialUser?.college || ''
@@ -658,7 +658,7 @@ export default function StudentDashboardClient({ initialUser, liveApplications =
                       <div>
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Skills Matrix</h3>
                         <div className="flex flex-wrap gap-2">
-                          {(user?.skills || ['React', 'JavaScript', 'Tailwind CSS']).map((skill, index) => (
+                          {(user?.skills || []).map((skill, index) => (
                             <div 
                               key={index}
                               className="border-2 border-black px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-sky-50 text-black hover:bg-sky-500 transition-colors"
@@ -939,26 +939,49 @@ export default function StudentDashboardClient({ initialUser, liveApplications =
                   <input 
                     type="file" 
                     accept=".pdf"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files[0];
                       if (!file) return;
                       setImportingFile(file);
                       setImportStep('uploading');
-                      setTimeout(() => setImportStep('parsing'), 1500);
-                      setTimeout(() => setImportStep('extracting'), 3000);
-                      setTimeout(() => {
-                        setParsedData({
-                          name: 'Extracted Name',
-                          email: 'extracted@example.com',
-                          phone: '+91 9876543210',
-                          college: 'Mock University',
-                          skillsString: 'React, Node, Next.js',
-                          location: 'Remote',
-                          experience: '2 Years',
-                          bio: 'An extracted bio from the mock PDF parsing engine.'
+                      setParsedData(null);
+                      
+                      try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        
+                        setImportStep('parsing');
+                        
+                        const res = await fetch('/api/extract-resume', {
+                          method: 'POST',
+                          body: formData,
                         });
-                        setImportStep('done');
-                      }, 4500);
+                        
+                        const json = await res.json();
+                        if (!res.ok) throw new Error(json.error || 'Extraction failed');
+                        
+                        setImportStep('extracting');
+                        
+                        setTimeout(() => {
+                          const data = json.data || {};
+                          setParsedData({
+                            name: data.fullName || data.name || 'Parsed Candidate',
+                            email: data.email || 'extracted@example.com',
+                            phone: data.phone || '',
+                            college: data.college || '',
+                            skillsString: data.skillsString || '',
+                            location: data.location || 'Remote',
+                            experience: data.experience || '',
+                            bio: data.bio || 'An extracted bio from the AI parser.'
+                          });
+                          setImportStep('done');
+                        }, 800);
+                        
+                      } catch (err) {
+                        console.error("Dashboard Resume Extraction Error:", err);
+                        setImportStep('idle');
+                        alert("Failed to parse PDF: " + err.message);
+                      }
                     }}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />

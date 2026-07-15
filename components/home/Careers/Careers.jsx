@@ -4,7 +4,7 @@ import {
   Briefcase, 
   MapPin, 
   Clock, 
-  DollarSign, 
+  IndianRupee, 
   Filter, 
   ChevronRight, 
   Search,
@@ -357,7 +357,7 @@ const Careers = ({ searchQuery, setSearchQuery, searchLocation, setSearchLocatio
 
                         <div className="flex flex-wrap gap-4 text-xs font-bold text-slate-500">
                           <div className="flex items-center gap-1"><MapPin size={14} className="text-black" /> {job.location}</div>
-                          <div className="flex items-center gap-1"><DollarSign size={14} className="text-black" /> {job.salary}</div>
+                          <div className="flex items-center gap-1"><IndianRupee size={14} className="text-black" /> {job.salary}</div>
                           <div className="flex items-center gap-1"><Code size={14} className="text-black" /> {job.stack.join(", ")}</div>
                         </div>
                       </div>

@@ -13,6 +13,7 @@ const MentorshipScheduler = ({ mentor, onClose }) => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
   const [meetLink, setMeetLink] = useState('');
+  const [location, setLocation] = useState('native');
 
   if (!mentor) return null;
 
@@ -36,7 +37,7 @@ const MentorshipScheduler = ({ mentor, onClose }) => {
     setBookingLoading(true);
     setBookingError('');
     try {
-      const res = await bookMentorSession(mentor.id, `${selectedDate.month} ${selectedDate.dayNum}`, selectedTime);
+      const res = await bookMentorSession(mentor.id, `${selectedDate.month} ${selectedDate.dayNum}`, selectedTime, location);
       if (res?.error) {
         setBookingError(res.error);
         if (res.error.toLowerCase().includes('unauthorized') || res.error.toLowerCase().includes('log in')) {
@@ -145,6 +146,36 @@ const MentorshipScheduler = ({ mentor, onClose }) => {
                   </div>
                 </section>
 
+                {/* Location Selection */}
+                <section className={!selectedTime ? 'opacity-30 pointer-events-none transition-opacity' : 'transition-opacity'}>
+                  <h3 className="text-sm font-black uppercase tracking-widest border-b-2 border-black pb-2 mb-4 flex items-center gap-2">
+                    <LinkIcon size={16} className="text-emerald-500" /> Session Location
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setLocation('meet')}
+                      className={`py-3 border-2 font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                        location === 'meet' 
+                          ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(16,185,129,1)]' 
+                          : 'bg-white border-black text-slate-600 hover:bg-emerald-50 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                      }`}
+                    >
+                      Google Meet
+                    </button>
+                    <button
+                      onClick={() => setLocation('native')}
+                      className={`py-3 border-2 font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 leading-none ${
+                        location === 'native' 
+                          ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(16,185,129,1)]' 
+                          : 'bg-white border-black text-slate-600 hover:bg-emerald-50 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                      }`}
+                    >
+                      <span>hirrd Space</span>
+                      <span className={`text-[7px] ${location === 'native' ? 'text-emerald-400' : 'text-slate-400'}`}>Native Video Room</span>
+                    </button>
+                  </div>
+                </section>
+
                 {/* Summary & Submit */}
                 <div className="pt-6 border-t-2 border-black mt-8">
                   {bookingError && (
@@ -193,8 +224,12 @@ const MentorshipScheduler = ({ mentor, onClose }) => {
                   Your session with <span className="text-black bg-emerald-200 px-1">{mentor.name}</span> has been confirmed for {selectedDate?.dayName}, {selectedDate?.month} {selectedDate?.dayNum} at {selectedTime}.
                 </p>
                 <div className="bg-white border-2 border-black p-4 mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-full max-w-sm">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Google Meet Link</p>
-                  <p className="font-bold text-xs truncate text-sky-500 cursor-pointer hover:underline">{meetLink}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                    {location === 'native' ? 'Native Session Link' : 'Google Meet Link'}
+                  </p>
+                  <a href={meetLink} className="font-bold text-xs truncate text-sky-500 cursor-pointer hover:underline block break-all">
+                    {location === 'native' ? 'Join Native Room' : meetLink}
+                  </a>
                 </div>
                 <button 
                   onClick={onClose}

@@ -76,7 +76,7 @@ const ProfilePage = () => {
       bio: parsedUser.bio || 'Elite job seeker seeking premium opportunities.',
       location: parsedUser.location || 'Nagpur, India',
       experience: parsedUser.experience || 'Fresher',
-      skillsString: (parsedUser.skills || ['React', 'JavaScript', 'Tailwind CSS']).join(', '),
+      skillsString: (parsedUser.skills || []).join(', '),
       profilePicture: parsedUser.profilePicture || '',
       phone: parsedUser.phone || '',
       college: parsedUser.college || ''
@@ -167,7 +167,7 @@ const ProfilePage = () => {
       ];
       localStorage.setItem('postedJobs', JSON.stringify(allJobs));
     }
-    const candidateSkills = parsedUser.skills || ['React', 'JavaScript', 'Tailwind CSS'];
+    const candidateSkills = parsedUser.skills || [];
     const matched = allJobs.filter(job => {
       const descText = (job.title + ' ' + job.description + ' ' + job.department).toLowerCase();
       return candidateSkills.some(skill => descText.includes(skill.toLowerCase()));
@@ -959,7 +959,7 @@ const ProfilePage = () => {
                       <div>
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Skills Matrix</h3>
                         <div className="flex flex-wrap gap-2">
-                          {(user.skills || ['React', 'JavaScript', 'Tailwind CSS']).map((skill, index) => (
+                          {(user.skills || []).map((skill, index) => (
                             <div 
                               key={index}
                               className="border-2 border-black px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-sky-50 text-black hover:bg-sky-500 transition-colors"

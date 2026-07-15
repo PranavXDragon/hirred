@@ -102,7 +102,7 @@ const ResumeBuilderPage = () => {
         phone: parsedUser.phone || '',
         location: parsedUser.location || 'Nagpur, India',
         summary: parsedUser.bio || 'Elite job seeker seeking premium opportunities.',
-        skillsString: (parsedUser.skills || ['React', 'JavaScript', 'Tailwind CSS', 'Node.js', 'Docker']).join(', '),
+        skillsString: (parsedUser.skills || []).join(', '),
         educations: [
           {
             id: 1,
@@ -130,7 +130,7 @@ const ResumeBuilderPage = () => {
         phone: user.phone || '',
         location: user.location || 'Nagpur, India',
         summary: user.bio || 'Elite job seeker seeking premium opportunities.',
-        skillsString: (user.skills || ['React', 'JavaScript', 'Tailwind CSS', 'Node.js', 'Docker']).join(', '),
+        skillsString: (user.skills || []).join(', '),
         educations: [
           {
             id: 1,
@@ -150,191 +150,61 @@ const ResumeBuilderPage = () => {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
-  // Dynamically load PDF.js from cdnjs
-  const loadPdfJS = () => {
-    return new Promise((resolve, reject) => {
-      if (window.pdfjsLib) {
-        resolve(window.pdfjsLib);
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js';
-      script.onload = () => {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-        resolve(window.pdfjsLib);
-      };
-      script.onerror = () => reject(new Error('Failed to load PDF parsing node from CDN.'));
-      document.head.appendChild(script);
-    });
-  };
-
-  // Simulated PDF Parse Sequence
-  const handleFileSelect = (e) => {
+  // Trigger API-based PDF Parse Sequence
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setImportingFile(file);
     setImportStep('uploading');
     setParsedData(null);
-
-    const runHeuristicParser = (rawText) => {
-      // Step 1: Uploading complete
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      setImportStep('parsing');
+      
+      const res = await fetch('/api/extract-resume', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Extraction failed');
+      
+      setImportStep('extracting');
+      
+      // Map AI keys to local state format with minor delays for UI smoothness
       setTimeout(() => {
-        setImportStep('parsing');
+        const data = json.data || {};
         
-        // Step 2: Parsing Layout Elements
-        setTimeout(() => {
-          setImportStep('extracting');
-
-          // Step 3: Extracting Key Entities
-          setTimeout(() => {
-            // Heuristic 1: Extract Name from text or clean file name
-            let parsedName = "";
-            const lines = rawText.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 2);
-            for (let i = 0; i < Math.min(5, lines.length); i++) {
-              const words = lines[i].split(/\s+/);
-              if (words.length >= 2 && words.length <= 4 && !/resume|cv|email|phone|skills|experience/i.test(lines[i])) {
-                parsedName = lines[i];
-                break;
-              }
-            }
-
-            if (!parsedName) {
-              parsedName = file.name
-                .replace(/\.[^/.]+$/, "") // remove extension
-                .replace(/[_-]/g, " ") // replace dashes
-                .replace(/\b\w/g, c => c.toUpperCase()); // capitalize
-            }
-
-            if (parsedName.toLowerCase().includes("resume") || parsedName.toLowerCase().includes("cv")) {
-              parsedName = user?.name || "Alex Mercer";
-            }
-
-            // Heuristic 2: Extract email via regex
-            const emailMatch = rawText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-            const email = emailMatch ? emailMatch[0] : (user?.email || 'parsed.jobseeker@hirrd.dev');
-
-            // Heuristic 3: Extract phone via regex
-            const phoneRegex = /(?:\+?\d{1,3}[- ]?)?\(?\d{3}\)?[- ]?\d{3}[- ]?\d{4}/;
-            const phoneMatch = rawText.match(phoneRegex);
-            const phone = phoneMatch ? phoneMatch[0] : '+91 90812 34567';
-
-            // Heuristic 4: Scan for skills
-            const commonSkills = [
-              "React", "Angular", "Vue", "JavaScript", "TypeScript", "Node.js", "Express", "Python", 
-              "Django", "Flask", "Java", "Spring Boot", "C++", "Rust", "Go", "Docker", "Kubernetes", 
-              "AWS", "GCP", "Azure", "Terraform", "PostgreSQL", "MongoDB", "MySQL", "Redis", "GraphQL",
-              "SQL", "Git", "GitHub Actions", "Tailwind CSS", "HTML", "CSS"
-            ];
-            const foundSkills = [];
-            for (const skill of commonSkills) {
-              const escaped = skill.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-              const regex = new RegExp(`\\b${escaped}\\b`, 'i');
-              if (rawText.match(regex)) {
-                foundSkills.push(skill);
-              }
-            }
-            
-            const finalSkills = foundSkills.length > 0 ? foundSkills : ["React", "JavaScript", "Node.js", "Tailwind CSS"];
-
-            // Heuristic 5: Guess Job Title
-            let jobTitle = "Software Engineer";
-            if (foundSkills.includes("Kubernetes") || foundSkills.includes("Docker") || foundSkills.includes("Terraform")) {
-              jobTitle = "DevOps & Cloud Engineer";
-            } else if (foundSkills.includes("React") || foundSkills.includes("Vue") || foundSkills.includes("Tailwind CSS")) {
-              jobTitle = "Frontend Developer";
-            } else if (foundSkills.includes("Node.js") || foundSkills.includes("Python") || foundSkills.includes("PostgreSQL")) {
-              jobTitle = "Backend Engineer";
-            }
-            
-            if (foundSkills.includes("React") && (foundSkills.includes("Node.js") || foundSkills.includes("Python") || foundSkills.includes("Go"))) {
-              jobTitle = "Full Stack Developer";
-            }
-
-            const bio = `Experienced ${jobTitle} specializing in ${finalSkills.slice(0, 4).join(", ")}, seeking premium roles. Focused on high-quality code and scalable systems.`;
-
-            setParsedData({
-              fullName: parsedName,
-              jobTitle,
-              email,
-              phone,
-              location: "Nagpur, India",
-              portfolio: `https://${parsedName.toLowerCase().replace(/\s+/g, "")}.dev`,
-              linkedin: `linkedin.com/in/${parsedName.toLowerCase().replace(/\s+/g, "-")}`,
-              github: `github.com/${parsedName.toLowerCase().replace(/\s+/g, "")}`,
-              summary: bio,
-              skillsString: finalSkills.join(", "),
-              experiences: [
-                {
-                  id: 1,
-                  title: `Senior ${jobTitle}`,
-                  company: 'Enterprise Core Node',
-                  dates: '2023 - Present',
-                  description: `Led product infrastructure scalability. Synced distributed database nodes and managed deployment channels using ${finalSkills.slice(0, 3).join(" and ")}.`
-                },
-                {
-                  id: 2,
-                  title: jobTitle,
-                  company: 'Digital Solutions Lab',
-                  dates: '2021 - 2023',
-                  description: `Optimized component layout performance. Programmed microservices and resolved API response delays under high traffic.`
-                }
-              ],
-              educations: [
-                {
-                  id: 1,
-                  degree: 'Bachelor of Engineering in Computer Science',
-                  school: 'State Technical University',
-                  dates: '2017 - 2021',
-                  details: 'Graduated with Distinction. Specialized in Systems Architecture.'
-                }
-              ],
-              projects: [
-                {
-                  id: 1,
-                  title: `${parsedName.split(' ')[0]}'s Portal Engine`,
-                  tech: finalSkills.slice(0, 3).join(", "),
-                  link: `github.com/${parsedName.toLowerCase().replace(/\s+/g, "")}/portal-engine`,
-                  description: `High-frequency router and node mesh designed for real-time client validation, processing handshakes under 5ms.`
-                }
-              ]
-            });
-            setImportStep('done');
-          }, 1200);
-        }, 1000);
-      }, 1000);
-    };
-
-    // If PDF, parse actual content via PDF.js. Fallback to FileReader readAsText for other types.
-    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      const bufferReader = new FileReader();
-      bufferReader.onload = async () => {
-        try {
-          const pdfjsLib = await loadPdfJS();
-          const typedarray = new Uint8Array(bufferReader.result);
-          const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-          let extractedText = "";
-
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(" ");
-            extractedText += pageText + "\n";
-          }
-
-          runHeuristicParser(extractedText);
-        } catch (err) {
-          console.error("PDF.js processing error, using fallback basic scanner:", err);
-          const txtReader = new FileReader();
-          txtReader.onload = () => runHeuristicParser(txtReader.result || '');
-          txtReader.readAsText(file);
-        }
-      };
-      bufferReader.readAsArrayBuffer(file);
-    } else {
-      const txtReader = new FileReader();
-      txtReader.onload = () => runHeuristicParser(txtReader.result || '');
-      txtReader.readAsText(file);
+        // Add random IDs to array elements if missing
+        const processArray = (arr) => (arr || []).map((item, idx) => ({ ...item, id: Date.now() + idx }));
+        
+        setParsedData({
+          fullName: data.fullName || data.name || "Parsed Candidate",
+          jobTitle: data.jobTitle || "Job Seeker",
+          email: data.email || user?.email || "email@example.com",
+          phone: data.phone || "",
+          location: data.location || "Nagpur, India",
+          portfolio: data.portfolio || "",
+          linkedin: data.linkedin || "",
+          github: data.github || "",
+          summary: data.bio || "",
+          skillsString: data.skillsString || "",
+          experiences: processArray(data.experiences),
+          educations: processArray(data.educations),
+          projects: processArray(data.projects)
+        });
+        
+        setImportStep('done');
+      }, 800);
+      
+    } catch (err) {
+      console.error("Resume Extraction Error:", err);
+      setImportStep('idle');
+      alert("Failed to parse PDF: " + err.message);
     }
   };
 
@@ -1227,21 +1097,21 @@ const ResumeBuilderPage = () => {
     {/* --- RESUME PDF IMPORTER MODAL --- */}
     <AnimatePresence>
       {showImportModal && (
-        <>
+        <motion.div key="import-modal-wrapper" className="fixed inset-0 z-[150] no-print flex items-center justify-center">
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => importStep === 'idle' || importStep === 'done' ? (setShowImportModal(false), setImportStep('idle'), setImportingFile(null)) : null}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] no-print"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.92, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 30 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 md:inset-auto md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:top-1/2 md:max-w-2xl w-full bg-white border-[4px] border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] z-[160] max-h-[90vh] overflow-y-auto no-print"
+            className="relative w-full max-w-2xl bg-white border-[4px] border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] z-[160] max-h-[90vh] overflow-y-auto mx-4"
           >
             <div className="flex justify-between items-center mb-6 border-b-4 border-black pb-4">
               <div className="flex items-center gap-2">
@@ -1397,7 +1267,7 @@ const ResumeBuilderPage = () => {
               </div>
             )}
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
     </>

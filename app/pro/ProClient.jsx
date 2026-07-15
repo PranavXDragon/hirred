@@ -128,8 +128,9 @@ export default function ProClient({ initialUser }) {
 
   const plans = [
     {
+      id: 'free',
       icon: <Zap className="text-black group-hover:text-sky-500 transition-colors" size={24} />,
-      title: 'Free / Base Node',
+      name: 'Free / Base Node',
       desc: 'Standard credentials for basic job seeker filters.',
       price: '₹0', features: ['Standard profile visibility', 'Normal pipeline speeds', 'Upload 1 Resume', 'Max 4 applications tracking'],
       cta: 'Current Plan', active: !isProUser, highlight: false

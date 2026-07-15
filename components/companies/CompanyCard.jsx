@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { MapPin, Briefcase, ChevronRight, Users, TrendingUp } from 'lucide-react';
 import CategoryRatingsBar from './CategoryRatingsBar';
 
@@ -42,9 +43,13 @@ const CompanyCard = ({ company, isSelected, onClick }) => {
       </div>
 
       <div className="mt-auto">
-        <button className="w-full bg-black text-white hover:bg-sky-500 hover:text-black transition-all border-2 border-black py-4 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none">
+        <Link 
+          href={`/companies/${company.slug}`}
+          onClick={(e) => e.stopPropagation()}
+          className="w-full bg-black text-white hover:bg-sky-500 hover:text-black transition-all border-2 border-black py-4 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none"
+        >
           Explore Profiles <ChevronRight size={16} />
-        </button>
+        </Link>
       </div>
       
       {isSelected && (

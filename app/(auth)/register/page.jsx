@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Eye, EyeOff, ArrowRight, Github, Linkedin, Building, ShieldCheck } from 'lucide-react';
+import { Zap, Eye, EyeOff, ArrowRight, Github, Linkedin, Building, ShieldCheck, Loader2 } from 'lucide-react';
 import { register } from '@/lib/actions/auth';
 import { useAuth } from '@/context/AuthContext';
 
@@ -21,6 +21,7 @@ const SignupPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleOAuthLogin = async (provider) => {
     try {
@@ -52,6 +53,8 @@ const SignupPage = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
       const payload = {
         email: formData.email,
@@ -71,6 +74,8 @@ const SignupPage = () => {
       }
       setError('An error occurred during registration.');
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,7 +110,7 @@ const SignupPage = () => {
           </h1>
 
           {/* Role Swapper Tabs */}
-          <div className="grid grid-cols-2 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
+          <div className="grid grid-cols-3 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
             <button 
               type="button" 
               onClick={() => { setRole('student'); setError(''); }}
@@ -123,6 +128,15 @@ const SignupPage = () => {
               }`}
             >
               Employer
+            </button>
+            <button 
+              type="button" 
+              onClick={() => { setRole('mentor'); setError(''); }}
+              className={`py-2 text-[10px] font-black uppercase tracking-wider transition-all duration-200 ${
+                role === 'mentor' ? 'bg-black text-white' : 'hover:bg-slate-200 text-slate-500'
+              }`}
+            >
+              Mentor
             </button>
           </div>
 
@@ -260,9 +274,14 @@ const SignupPage = () => {
             {/* Submit Button */}
             <button 
               type="submit"
-              className="w-full flex items-center justify-center gap-3 bg-black text-white py-4 font-black uppercase text-xs tracking-[0.25em] hover:bg-sky-500 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none"
+              disabled={isLoading || oauthLoading}
+              className="w-full flex items-center justify-center gap-3 bg-black text-white py-4 font-black uppercase text-xs tracking-[0.25em] hover:bg-sky-500 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Register Account <ArrowRight size={14} />
+              {isLoading ? (
+                <>Registering <Loader2 size={14} className="animate-spin" /></>
+              ) : (
+                <>Register Account <ArrowRight size={14} /></>
+              )}
             </button>
           </form>
 

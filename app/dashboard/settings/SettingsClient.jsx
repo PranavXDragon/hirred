@@ -24,7 +24,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../../context/ThemeContext';
 
-export default function SettingsClient({ initialUser, initialCompany }) {
+export default function SettingsClient({ initialUser, initialCompany, initialMentor }) {
   const router = useRouter();
   const [user, setUser] = useState(initialUser);
   const [company, setCompany] = useState(initialCompany);
@@ -57,6 +57,18 @@ export default function SettingsClient({ initialUser, initialCompany }) {
     location: initialCompany?.location || '',
     size: initialCompany?.size || '',
     website: initialCompany?.website || '',
+  });
+
+  // Mentor State
+  const [mentorForm, setMentorForm] = useState({
+    name: initialUser?.full_name || '',
+    email: initialUser?.email || '',
+    company: initialMentor?.company || '',
+    role: initialMentor?.role || '',
+    location: initialMentor?.location || '',
+    rate: initialMentor?.rate || '',
+    domain: initialMentor?.domain || '',
+    expertise: initialMentor?.expertise ? initialMentor.expertise.join(', ') : ''
   });
 
   const { theme, setTheme, accent: accentColor, setAccent: setAccentColor, density, setDensity } = useTheme();
@@ -99,6 +111,19 @@ export default function SettingsClient({ initialUser, initialCompany }) {
       } else {
         await supabase.from('companies').insert({ ...companyPayload, employer_id: user.id });
       }
+    } else if (user.role === 'mentor') {
+      updates = { full_name: mentorForm.name };
+      
+      const mentorPayload = {
+        company: mentorForm.company,
+        role: mentorForm.role,
+        location: mentorForm.location,
+        rate: parseFloat(mentorForm.rate) || 0,
+        domain: mentorForm.domain,
+        expertise: mentorForm.expertise.split(',').map(s => s.trim()).filter(Boolean)
+      };
+
+      await supabase.from('mentors').upsert({ id: user.id, ...mentorPayload });
     } else {
       updates = { 
         full_name: studentForm.name,
@@ -258,8 +283,12 @@ export default function SettingsClient({ initialUser, initialCompany }) {
                         type="text" 
                         required
                         className="w-full bg-slate-50 border-[3px] border-black p-3 font-bold focus:outline-none focus:bg-white transition-colors"
-                        value={user.role === 'employer' ? employerForm.name : studentForm.name}
-                        onChange={(e) => user.role === 'employer' ? setEmployerForm({ ...employerForm, name: e.target.value }) : setStudentForm({ ...studentForm, name: e.target.value })}
+                        value={user.role === 'employer' ? employerForm.name : (user.role === 'mentor' ? mentorForm.name : studentForm.name)}
+                        onChange={(e) => {
+                          if (user.role === 'employer') setEmployerForm({ ...employerForm, name: e.target.value });
+                          else if (user.role === 'mentor') setMentorForm({ ...mentorForm, name: e.target.value });
+                          else setStudentForm({ ...studentForm, name: e.target.value });
+                        }}
                       />
                     </div>
 
@@ -269,14 +298,14 @@ export default function SettingsClient({ initialUser, initialCompany }) {
                         type="email" 
                         disabled
                         className="w-full bg-slate-100 border-[3px] border-slate-300 text-slate-500 p-3 font-bold focus:outline-none"
-                        value={user.role === 'employer' ? employerForm.email : studentForm.email}
+                        value={user.role === 'employer' ? employerForm.email : (user.role === 'mentor' ? mentorForm.email : studentForm.email)}
                       />
                       <p className="text-[9px] font-bold text-slate-400 uppercase">Contact support to change email</p>
                     </div>
                   </div>
 
                   {/* Job Seeker Only Fields */}
-                  {user.role !== 'employer' && (
+                  {(user.role !== 'employer' && user.role !== 'mentor') && (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -439,6 +468,79 @@ export default function SettingsClient({ initialUser, initialCompany }) {
                               className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
                               value={employerForm.website}
                               onChange={(e) => setEmployerForm({ ...employerForm, website: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Mentor Only Fields */}
+                  {user.role === 'mentor' && (
+                    <>
+                      <div className="bg-purple-50 p-6 border-[3px] border-black space-y-6">
+                        <h4 className="text-sm font-black uppercase flex items-center gap-2">
+                          <SettingsIcon className="text-purple-500" /> Mentor Configuration
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Current Company</label>
+                            <input 
+                              type="text" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={mentorForm.company}
+                              onChange={(e) => setMentorForm({ ...mentorForm, company: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Job Role / Title</label>
+                            <input 
+                              type="text" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={mentorForm.role}
+                              onChange={(e) => setMentorForm({ ...mentorForm, role: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Location</label>
+                            <input 
+                              type="text" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={mentorForm.location}
+                              onChange={(e) => setMentorForm({ ...mentorForm, location: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Session Rate (₹)</label>
+                            <input 
+                              type="number" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={mentorForm.rate}
+                              onChange={(e) => setMentorForm({ ...mentorForm, rate: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Primary Domain</label>
+                            <input 
+                              type="text" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={mentorForm.domain}
+                              onChange={(e) => setMentorForm({ ...mentorForm, domain: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Expertise (Comma separated)</label>
+                            <input 
+                              type="text" 
+                              required
+                              className="w-full bg-white border-[3px] border-black p-3 font-bold focus:outline-none transition-colors"
+                              value={mentorForm.expertise}
+                              onChange={(e) => setMentorForm({ ...mentorForm, expertise: e.target.value })}
                             />
                           </div>
                         </div>

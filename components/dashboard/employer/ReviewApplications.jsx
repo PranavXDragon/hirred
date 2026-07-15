@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { updateApplicationStatus } from '../../../lib/actions/employer';
 import { FileText, ExternalLink, Mail, CheckCircle2, XCircle } from 'lucide-react';
+import { useScrollLock } from '../../../hooks/useScrollLock';
 
 const ReviewApplications = ({ initialApplications = [] }) => {
   const [applications, setApplications] = useState(initialApplications);
   const [loadingId, setLoadingId] = useState(null);
+  const [selectedResume, setSelectedResume] = useState(null);
+
+  useScrollLock(!!selectedResume);
 
   const handleStatusChange = async (appId, newStatus) => {
     setLoadingId(appId);
@@ -57,9 +61,21 @@ const ReviewApplications = ({ initialApplications = [] }) => {
                   </a>
                 )}
                 {app.student?.resume_url && (
-                  <a href={app.student.resume_url} target="_blank" rel="noreferrer" className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1 text-emerald-600 hover:text-black border-b-2 border-emerald-200">
-                    <ExternalLink size={12} /> View Resume
-                  </a>
+                  <button 
+                    type="button"
+                    onClick={(e) => {
+                      const url = app.student.resume_url || '';
+                      if (!url || url.endsWith('.pdf') && !url.startsWith('http')) {
+                        alert('Candidate has not uploaded a valid resume document.');
+                      } else {
+                        const validUrl = (url.startsWith('http://') || url.startsWith('https://')) ? url : `https://${url}`;
+                        setSelectedResume(validUrl);
+                      }
+                    }}
+                    className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1 text-emerald-600 hover:text-black border-b-2 border-emerald-200 cursor-pointer"
+                  >
+                    <FileText size={12} /> View Resume
+                  </button>
                 )}
                 {app.student?.github_url && (
                   <a href={app.student.github_url} target="_blank" rel="noreferrer" className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1 text-slate-500 hover:text-black">
@@ -100,6 +116,32 @@ const ReviewApplications = ({ initialApplications = [] }) => {
           </div>
         ))}
       </div>
+
+      {/* Resume Modal */}
+      {selectedResume && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-white border-[4px] border-black w-full max-w-4xl h-[85vh] flex flex-col shadow-[16px_16px_0px_0px_rgba(14,165,233,1)]">
+            <div className="flex items-center justify-between p-4 border-b-4 border-black bg-slate-50">
+              <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <FileText size={16} /> Document Viewer
+              </h3>
+              <button 
+                onClick={() => setSelectedResume(null)}
+                className="hover:bg-red-500 hover:text-white p-1 transition-colors border-2 border-transparent hover:border-black"
+              >
+                <XCircle size={24} />
+              </button>
+            </div>
+            <div className="flex-1 bg-slate-200 relative overflow-hidden">
+              <iframe 
+                src={`${selectedResume}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} 
+                className="absolute inset-0 w-full h-full border-none"
+                title="Resume Preview"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

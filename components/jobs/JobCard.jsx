@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Clock, MapPin, DollarSign, Code, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Clock, MapPin, IndianRupee, Code, ChevronRight, ShieldCheck } from 'lucide-react';
 
 const JobCard = ({ job, isSelected, onClick }) => {
   return (
@@ -32,7 +32,7 @@ const JobCard = ({ job, isSelected, onClick }) => {
 
         <div className="flex flex-wrap gap-3 text-xs font-bold text-slate-500">
           <div className="flex items-center gap-1"><MapPin size={14} className="text-black" /> {job.location}</div>
-          <div className="flex items-center gap-1"><DollarSign size={14} className="text-black" /> {job.salary}</div>
+          <div className="flex items-center gap-1"><IndianRupee size={14} className="text-black" /> {job.salary}</div>
         </div>
         
         <div className="pt-2 flex flex-wrap gap-2">

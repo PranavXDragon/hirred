@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   Briefcase, 
@@ -157,9 +158,9 @@ const ServicesPage = () => {
                   {service.desc}
                 </p>
 
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-black/40 group-hover:text-sky-500 transition-colors">
+                <Link href="/register" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-black/40 group-hover:text-sky-500 transition-colors">
                   Explore Protocol <ArrowUpRight size={14} />
-                </div>
+                </Link>
               </motion.div>
             ))}
           </motion.div>
@@ -201,9 +202,9 @@ const ServicesPage = () => {
              <p className="text-black font-bold text-lg max-w-2xl mb-12 opacity-80">
                Need a custom integration or large-scale recruitment infrastructure? Our hirrd technical team can build it.
              </p>
-             <button className="bg-black text-white px-12 py-5 font-black uppercase tracking-widest text-sm hover:translate-x-2 hover:-translate-y-2 transition-transform shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+             <Link href="/contact" className="inline-block bg-black text-white px-12 py-5 font-black uppercase tracking-widest text-sm hover:translate-x-2 hover:-translate-y-2 transition-transform shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
                Request Corporate Demo
-             </button>
+             </Link>
           </div>
         </div>
       </section>

@@ -190,9 +190,13 @@ const Contact = () => {
             <div className="pt-8 border-t border-slate-100 flex items-center gap-6">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Follow us:</span>
               <div className="flex gap-4">
-                {[Linkedin, Twitter, Instagram].map((Icon, i) => (
-                  <a key={i} href="#" className="w-10 h-10 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-sky-500 hover:border-sky-100 transition-all">
-                    <Icon size={18} />
+                {[
+                  { Icon: Linkedin, url: 'https://www.linkedin.com/company/hirrdtech' },
+                  { Icon: Twitter, url: 'https://x.com/hirrdhq' },
+                  { Icon: Instagram, url: 'https://www.instagram.com/hirrd.tech/' }
+                ].map((social, i) => (
+                  <a key={i} href={social.url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-sky-500 hover:border-sky-100 transition-all">
+                    <social.Icon size={18} />
                   </a>
                 ))}
               </div>

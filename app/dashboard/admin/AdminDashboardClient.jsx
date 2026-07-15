@@ -2,11 +2,14 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Users, Briefcase, Trash2, LogOut, Check, ShieldAlert, Award } from 'lucide-react';
+import { Zap, Users, Briefcase, Trash2, LogOut, Check, ShieldAlert, Award, Palette, Mail } from 'lucide-react';
 import { deleteUserProfile } from '../../../lib/actions/admin';
 import { logout } from '../../../lib/actions/auth';
+import AdminDesignsPanel from './AdminDesignsPanel';
+import AdminSupportPanel from './AdminSupportPanel';
 
 const AdminDashboardClient = ({ user, initialStats, initialUsers }) => {
+  const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState(initialUsers);
   const [stats, setStats] = useState(initialStats);
   const [alertMessage, setAlertMessage] = useState('');
@@ -116,10 +119,33 @@ const AdminDashboardClient = ({ user, initialStats, initialUsers }) => {
                 </div>
               </div>
             </div>
+
+            {/* Navigation */}
+            <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-2">
+              <button 
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center gap-2 p-3 font-black uppercase tracking-widest text-[10px] border-2 border-black transition-all text-left ${activeTab === 'users' ? 'bg-sky-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-y-1' : 'bg-white text-black hover:bg-slate-100'}`}
+              >
+                <Users size={16} /> User Registry
+              </button>
+              <button 
+                onClick={() => setActiveTab('support')}
+                className={`flex items-center gap-2 p-3 font-black uppercase tracking-widest text-[10px] border-2 border-black transition-all text-left ${activeTab === 'support' ? 'bg-emerald-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-y-1' : 'bg-white text-black hover:bg-slate-100'}`}
+              >
+                <Mail size={16} /> Contact Requests
+              </button>
+              <button 
+                onClick={() => setActiveTab('themes')}
+                className={`flex items-center gap-2 p-3 font-black uppercase tracking-widest text-[10px] border-2 border-black transition-all text-left ${activeTab === 'themes' ? 'bg-purple-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-y-1' : 'bg-white text-black hover:bg-slate-100'}`}
+              >
+                <Palette size={16} /> CV Themes Engine
+              </button>
+            </div>
           </aside>
 
-          {/* User Management */}
+          {/* Main Content Area */}
           <main className="lg:col-span-3">
+            {activeTab === 'users' && (
             <div className="bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
               <div className="p-6 border-b-4 border-black bg-slate-50 flex items-center justify-between">
                 <h3 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
@@ -192,6 +218,15 @@ const AdminDashboardClient = ({ user, initialStats, initialUsers }) => {
                 </table>
               </div>
             </div>
+            )}
+
+            {activeTab === 'support' && (
+              <AdminSupportPanel showAlert={(msg) => { setAlertMessage(msg); setTimeout(() => setAlertMessage(''), 3000); }} />
+            )}
+
+            {activeTab === 'themes' && (
+              <AdminDesignsPanel showAlert={(msg) => { setAlertMessage(msg); setTimeout(() => setAlertMessage(''), 3000); }} />
+            )}
           </main>
 
         </div>

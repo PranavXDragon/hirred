@@ -15,6 +15,7 @@ import {
   Check
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
+import toast from 'react-hot-toast';
 
 const XIcon = ({ size = 24, className = "" }) => (
   <svg 
@@ -90,7 +91,7 @@ const Footer = () => {
             <button 
               onClick={() => {
                 if (profile && profile.role !== 'employer') {
-                  alert("This feature is only for Employers.");
+                  toast.error("This feature is only for Employers.");
                   return;
                 }
                 window.location.href = profile ? '/dashboard/employer' : '/register?role=employer';
@@ -102,7 +103,7 @@ const Footer = () => {
             <button 
               onClick={() => {
                 if (profile && profile.role !== 'employer') {
-                  alert("This feature is only for Employers.");
+                  toast.error("This feature is only for Employers.");
                   return;
                 }
                 window.location.href = profile ? '/dashboard/employer' : '/register?role=employee';
@@ -214,7 +215,7 @@ const Footer = () => {
               {[
                 { Icon: Linkedin, url: 'https://www.linkedin.com/company/hirrdtech' },
                 { Icon: XIcon, url: 'https://x.com/hirrdhq' },
-                { Icon: Instagram, url: 'https://www.instagram.com/hirrdhq/' },
+                { Icon: Instagram, url: 'https://www.instagram.com/hirrd.tech/' },
                 { Icon: Facebook, url: '#' }
               ].map((social, i) => (
                 <a href={social.url} target="_blank" rel="noopener noreferrer" key={i} className="border border-neutral-800 hover:border-sky-400 p-2 transition-colors cursor-pointer bg-neutral-950 block">

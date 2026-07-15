@@ -1,8 +1,9 @@
 'use client';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Eye, EyeOff, ArrowRight, Github, Linkedin } from 'lucide-react';
+import { Zap, Eye, EyeOff, ArrowRight, Github, Linkedin, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { login } from '@/lib/actions/auth';
 
 const SigninPage = () => {
   const { signInWithOAuth } = useAuth();
@@ -15,6 +16,7 @@ const SigninPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleOAuthLogin = async (provider) => {
     try {
@@ -30,12 +32,12 @@ const SigninPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     // Call the server action directly (passed via import, but wait, server actions in Next.js 14+ can be imported)
     // Actually we need to import the login action. Let's make sure it's imported at the top.
     
     try {
-      const { login } = await import('@/lib/actions/auth');
       const result = await login({ email: formData.email, password: formData.password });
       
       if (result?.error) {
@@ -47,6 +49,8 @@ const SigninPage = () => {
       }
       setError('An error occurred during sign in.');
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,7 +85,7 @@ const SigninPage = () => {
           </h1>
 
           {/* Role Swapper Tabs */}
-          <div className="grid grid-cols-2 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
+          <div className="grid grid-cols-3 border-[3px] border-black p-1 mb-8 gap-1 bg-slate-50">
             <button 
               type="button" 
               onClick={() => { setRole('student'); setError(''); }}
@@ -99,6 +103,15 @@ const SigninPage = () => {
               }`}
             >
               Employer
+            </button>
+            <button 
+              type="button" 
+              onClick={() => { setRole('mentor'); setError(''); }}
+              className={`py-2 text-[10px] font-black uppercase tracking-wider transition-all duration-200 ${
+                role === 'mentor' ? 'bg-black text-white' : 'hover:bg-slate-200 text-slate-500'
+              }`}
+            >
+              Mentor
             </button>
           </div>
 
@@ -166,9 +179,14 @@ const SigninPage = () => {
             <div className="flex flex-col gap-3">
               <button 
                 type="submit"
-                className="w-full flex items-center justify-center gap-3 bg-black text-white py-4 font-black uppercase text-xs tracking-[0.25em] hover:bg-sky-500 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none"
+                disabled={isLoading || oauthLoading}
+                className="w-full flex items-center justify-center gap-3 bg-black text-white py-4 font-black uppercase text-xs tracking-[0.25em] hover:bg-sky-500 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Verify Session <ArrowRight size={14} />
+                {isLoading ? (
+                  <>Authenticating <Loader2 size={14} className="animate-spin" /></>
+                ) : (
+                  <>Verify Session <ArrowRight size={14} /></>
+                )}
               </button>
             </div>
           </form>

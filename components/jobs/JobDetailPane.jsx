@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Clock, MapPin, DollarSign, Code, Zap, Briefcase, Building, ChevronRight, Share2, Heart, CheckCircle2 } from 'lucide-react';
+import { Clock, MapPin, IndianRupee, Code, Zap, Briefcase, Building, ChevronRight, Share2, Heart, CheckCircle2, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RecruiterActivity from './RecruiterActivity';
 import DeadlineTimer from './DeadlineTimer';
@@ -10,6 +10,7 @@ import HRContactButtons from './HRContactButtons';
 import { submitApplication, toggleSavedJob, incrementJobViews } from '../../lib/actions/student';
 import { createClient } from '../../lib/supabase/client';
 import { useAuth } from '../../context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const JobDetailPane = ({ job }) => {
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,7 @@ const JobDetailPane = ({ job }) => {
   
   const { profile } = useAuth();
   const isEmployer = profile?.role === 'employer';
+  const router = useRouter();
 
   const supabase = createClient();
 
@@ -54,12 +56,45 @@ const JobDetailPane = ({ job }) => {
       if (appRes.data) {
         setApplicationStatus(appRes.data.status);
         setSuccess(true);
+        
+        // Subscribe to real-time updates for this specific application
+        const channel = supabase
+          .channel(`public:applications:${job.id}-${user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'applications',
+              filter: `job_id=eq.${job.id}`
+            },
+            (payload) => {
+              // Ensure it's for the current user
+              if (payload.new.student_id === user.id) {
+                setApplicationStatus(payload.new.status);
+              }
+            }
+          )
+          .subscribe();
+
+        // Cleanup function for the subscription
+        return () => {
+          supabase.removeChannel(channel);
+        };
       } else {
         setApplicationStatus(null);
         setSuccess(false);
       }
     };
-    fetchData();
+    
+    let cleanupFunc;
+    fetchData().then(cleanup => {
+      if (cleanup) cleanupFunc = cleanup;
+    });
+
+    return () => {
+      if (cleanupFunc) cleanupFunc();
+    };
   }, [job]);
 
   const handleApply = async () => {
@@ -69,15 +104,21 @@ const JobDetailPane = ({ job }) => {
     try {
       await submitApplication(job.id);
       setSuccess(true);
+      setApplicationStatus('pending');
     } catch (err) {
       setError(err.message);
+      if (err.message.toLowerCase().includes('unauthorized') || err.message.toLowerCase().includes('log in')) {
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+      }
     }
     setLoading(false);
   };
 
   const handleShare = () => {
     if (typeof window !== 'undefined') {
-      const url = `${window.location.origin}/jobs?id=${job.id}`;
+      const url = `${window.location.origin}/jobs/${job.slug}`;
       navigator.clipboard.writeText(url);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
@@ -164,7 +205,7 @@ const JobDetailPane = ({ job }) => {
 
           <div className="flex flex-wrap gap-4 text-xs font-bold text-slate-600 mb-2">
             <div className="flex items-center gap-1.5"><MapPin size={16} className="text-black" /> {job.location}</div>
-            <div className="flex items-center gap-1.5"><DollarSign size={16} className="text-black" /> {job.salary}</div>
+            <div className="flex items-center gap-1.5"><IndianRupee size={16} className="text-black" /> {job.salary}</div>
             <div className="flex items-center gap-1.5"><Briefcase size={16} className="text-black" /> {job.type}</div>
             <div className="flex items-center gap-1.5"><Clock size={16} className="text-black" /> {job.posted}</div>
           </div>
@@ -249,9 +290,19 @@ const JobDetailPane = ({ job }) => {
               </div>
             )}
             {success ? (
-              <button disabled className="w-full bg-emerald-500 text-black py-4 text-sm font-black uppercase tracking-[0.2em] transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-[3px] border-black flex items-center justify-center gap-2">
-                <CheckCircle2 size={18} /> Protocol Submitted
-              </button>
+              applicationStatus === 'hired' || applicationStatus === 'accepted' ? (
+                <button disabled className="w-full bg-emerald-500 text-black py-4 text-sm font-black uppercase tracking-[0.2em] transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-[3px] border-black flex items-center justify-center gap-2 animate-pulse">
+                  <CheckCircle2 size={18} /> Protocol Secured
+                </button>
+              ) : applicationStatus === 'rejected' ? (
+                <button disabled className="w-full bg-red-500 text-white py-4 text-sm font-black uppercase tracking-[0.2em] transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-[3px] border-black flex items-center justify-center gap-2">
+                  <XCircle size={18} /> Protocol Terminated
+                </button>
+              ) : (
+                <button disabled className="w-full bg-emerald-500 text-black py-4 text-sm font-black uppercase tracking-[0.2em] transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-[3px] border-black flex items-center justify-center gap-2">
+                  <CheckCircle2 size={18} /> Protocol Submitted
+                </button>
+              )
             ) : (
               <button 
                 onClick={handleApply}

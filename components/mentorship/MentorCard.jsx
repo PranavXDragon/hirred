@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Star, MapPin, Briefcase, Zap, CalendarDays } from 'lucide-react';
+import { Star, MapPin, Briefcase, Zap, CalendarDays, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const MentorCard = ({ mentor, onBook }) => {
@@ -58,12 +58,21 @@ const MentorCard = ({ mentor, onBook }) => {
           <span className="text-xl font-black text-emerald-600">{mentor.rate}</span>
         </div>
         
-        <button 
-          onClick={() => onBook(mentor)}
-          className="w-full bg-black text-white hover:bg-sky-500 hover:text-black transition-all border-2 border-black py-4 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none"
-        >
-          <CalendarDays size={16} /> Book Protocol
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button 
+            onClick={() => window.location.href = `/mentorship/chat/${mentor.id}`}
+            className="w-full bg-white text-black hover:bg-slate-100 transition-all border-2 border-black py-4 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none"
+          >
+            <MessageSquare size={14} /> Chat
+          </button>
+          
+          <button 
+            onClick={() => onBook(mentor)}
+            className="w-full bg-black text-white hover:bg-sky-500 hover:text-black transition-all border-2 border-black py-4 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(14,165,233,1)] active:translate-y-1 active:shadow-none"
+          >
+            <CalendarDays size={14} /> Book
+          </button>
+        </div>
       </div>
 
     </div>

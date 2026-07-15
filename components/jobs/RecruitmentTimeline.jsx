@@ -13,16 +13,22 @@ const RecruitmentTimeline = ({ currentStatus }) => {
 
   if (currentStatus) {
     const status = currentStatus.toLowerCase();
+    
     if (status === 'pending') {
       stages[0].status = 'active';
-    } else if (status === 'shortlisted') {
+    } else if (status === 'reviewing' || status === 'assessment') {
       stages[0].status = 'completed';
       stages[1].status = 'active';
-    } else if (status === 'rejected') {
+    } else if (status === 'interview') {
       stages[0].status = 'completed';
-      stages[1].status = 'rejected';
-    } else if (status === 'accepted' || status === 'hired') {
-      stages = stages.map(s => ({ ...s, status: 'completed' }));
+      stages[1].status = 'completed';
+      stages[2].status = 'active';
+    } else if (status === 'hired' || status === 'accepted') {
+      stages = stages.map(s => ({ ...s, status: 'hired' }));
+    } else if (status === 'rejected') {
+      stages = [
+        { title: "Protocol Terminated", status: "rejected", desc: "Application closed by employer." }
+      ];
     }
   }
 
@@ -37,7 +43,11 @@ const RecruitmentTimeline = ({ currentStatus }) => {
           <div key={index} className="flex gap-4">
             {/* Timeline Line/Icon */}
             <div className="flex flex-col items-center">
-              {stage.status === 'completed' ? (
+              {stage.status === 'hired' ? (
+                <div className="w-6 h-6 rounded-full bg-emerald-500 text-black flex items-center justify-center z-10 border-2 border-black animate-pulse">
+                  <CheckCircle2 size={12} />
+                </div>
+              ) : stage.status === 'completed' ? (
                 <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center z-10 border-2 border-black">
                   <CheckCircle2 size={12} />
                 </div>
@@ -56,13 +66,13 @@ const RecruitmentTimeline = ({ currentStatus }) => {
               )}
               
               {index < stages.length - 1 && (
-                <div className={`w-0.5 h-12 ${(stage.status === 'completed' || stage.status === 'rejected') ? 'bg-black' : 'bg-slate-200'}`}></div>
+                <div className={`w-0.5 h-12 ${(stage.status === 'completed' || stage.status === 'rejected') ? 'bg-black' : stage.status === 'hired' ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
               )}
             </div>
             
             {/* Content */}
             <div className={`pb-8 ${stage.status === 'pending' ? 'opacity-50' : ''}`}>
-              <h4 className={`font-black text-xs uppercase tracking-widest ${stage.status === 'rejected' ? 'text-red-500' : ''}`}>
+              <h4 className={`font-black text-xs uppercase tracking-widest ${stage.status === 'rejected' ? 'text-red-500' : stage.status === 'hired' ? 'text-emerald-600' : ''}`}>
                 {stage.title}
               </h4>
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter mt-1">{stage.desc}</p>

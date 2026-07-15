@@ -4,6 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Cpu, Building2, Stethoscope, BarChart4, GraduationCap, Plus, Zap 
 } from 'lucide-react';
+import Link from 'next/link';
+
+const slugMap = {
+  "Technology & IT": "technology-it",
+  "Real Estate": "real-estate",
+  "Healthcare": "healthcare",
+  "FinTech": "fintech",
+  "Education": "education"
+};
 
 const IndustriesPage = () => {
   const [hoveredIndex, setHoveredIndex] = useState(0);
@@ -142,9 +151,9 @@ const IndustriesPage = () => {
                         </p>
                         
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                          <button className="flex items-center gap-3 bg-black text-white px-6 py-3 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-sky-500 transition-all shadow-[4px_4px_0px_0px_rgba(14,165,233,1)]">
+                          <Link href={`/industries/${slugMap[item.title]}`} className="flex items-center gap-3 bg-black text-white px-6 py-3 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-sky-500 transition-all shadow-[4px_4px_0px_0px_rgba(14,165,233,1)]">
                             Explore <Plus size={14} />
-                          </button>
+                          </Link>
                           <span className="text-[10px] font-black uppercase text-sky-600 bg-sky-50 px-2 py-1">
                              {item.stats}
                           </span>
@@ -168,14 +177,14 @@ const IndustriesPage = () => {
       <section className="py-16 md:py-24 bg-black text-white relative z-10">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-5xl font-black uppercase mb-8">Ready to Scale?</h2>
-          <button className="bg-sky-500 text-black px-10 py-4 font-black uppercase tracking-widest text-xs hover:bg-white transition-all shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
+          <Link href="/contact" className="inline-block bg-sky-500 text-black px-10 py-4 font-black uppercase tracking-widest text-xs hover:bg-white transition-all shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
             Contact Industry Expert
-          </button>
+          </Link>
         </div>
       </section>
 
     </div>
   );
-};
+}
 
 export default IndustriesPage;

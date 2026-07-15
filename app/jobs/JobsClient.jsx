@@ -36,7 +36,7 @@ const getSearchKeywords = (query) => {
   return [...new Set(keywords)];
 };
 
-export default function JobsClient({ initialJobs = [] }) {
+export default function JobsClient({ initialJobs = [], initialSlug = null }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -80,17 +80,15 @@ export default function JobsClient({ initialJobs = [] }) {
     return matchesCategory && matchesQuery && matchesLoc;
   });
 
-  // Default select first job if none selected, or select by ID from URL
+  // Default select first job if none selected, or select by slug from URL
   useEffect(() => {
     if (filteredJobs.length > 0 && !selectedJob) {
       const idParam = searchParams?.get('id');
-      if (idParam) {
-        // Find job in all initial jobs, not just filtered ones, in case they navigated directly
-        const found = initialJobs.find(j => j.id === idParam);
+      if (initialSlug || idParam) {
+        // Find job in all initial jobs by slug or id
+        const found = initialJobs.find(j => j.slug === initialSlug || j.id === idParam);
         if (found) {
           setSelectedJob(found);
-          // If the selected job is not in filtered jobs, we might want to still show it or clear filters
-          // For now, just setting it is fine
           return;
         }
       }
@@ -98,7 +96,14 @@ export default function JobsClient({ initialJobs = [] }) {
     } else if (filteredJobs.length === 0) {
       setSelectedJob(null);
     }
-  }, [filteredJobs, selectedJob, searchParams, initialJobs]);
+  }, [filteredJobs, selectedJob, searchParams, initialJobs, initialSlug]);
+
+  // Update URL silently when job is selected
+  useEffect(() => {
+    if (selectedJob && typeof window !== 'undefined') {
+      window.history.replaceState({}, '', `/jobs/${selectedJob.slug}`);
+    }
+  }, [selectedJob]);
 
   const handleSearch = () => {
     setActiveQuery(searchVal);

@@ -8,6 +8,7 @@ drop table if exists public.jobs cascade;
 drop table if exists public.companies cascade;
 drop table if exists public.mentors cascade;
 drop table if exists public.profiles cascade;
+drop table if exists public.resume_designs cascade;
 
 -- 1. PROFILES TABLE EXTENSION
 -- Extending the default auth.users table
@@ -49,6 +50,7 @@ create table if not exists public.companies (
   remote boolean default false,
   logo_url text,
   website text,
+  about text,
   culture_ratings jsonb default '{"workLife": 0, "compensation": 0, "culture": 0, "growth": 0, "diversity": 0}'::jsonb,
   perks jsonb default '[]'::jsonb,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -155,7 +157,7 @@ create policy "Mentors can update their bookings." on public.bookings for update
 
 -- 7. STORAGE BUCKETS SETUP
 insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true) on conflict do nothing;
-insert into storage.buckets (id, name, public) values ('resumes', 'resumes', false) on conflict do nothing;
+insert into storage.buckets (id, name, public) values ('resumes', 'resumes', true) on conflict do nothing;
 insert into storage.buckets (id, name, public) values ('company-logos', 'company-logos', true) on conflict do nothing;
 
 -- RLS for Storage (Avatars)
@@ -207,3 +209,18 @@ create table if not exists public.contact_messages (
 
 alter table public.contact_messages enable row level security;
 create policy "Anyone can insert a contact message." on public.contact_messages for insert with check (true);
+
+-- 10. REAL-TIME MESSAGES (For Mentor/Student Chat)
+create table if not exists public.messages (
+  id uuid default gen_random_uuid() primary key,
+  sender_id uuid references public.profiles(id) on delete cascade not null,
+  receiver_id text not null, -- Changed to text to support 'dummy-1' mentors during testing
+  content text not null,
+  read boolean default false,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.messages enable row level security;
+create policy "Users can view their own messages." on public.messages for select using (auth.uid() = sender_id or auth.uid() = receiver_id);
+create policy "Users can insert messages." on public.messages for insert with check (auth.uid() = sender_id);
+create policy "Users can update received messages (e.g. mark read)." on public.messages for update using (auth.uid() = receiver_id);
